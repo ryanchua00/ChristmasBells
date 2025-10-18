@@ -85,6 +85,7 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
               onChange={(e) => setFormData({ ...formData, item_name: e.target.value })}
               className="christmas-input"
               placeholder="What would you like for Christmas?"
+              maxLength={255}
               required
             />
           </div>
@@ -100,6 +101,7 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
               onChange={(e) => setFormData({ ...formData, link: e.target.value })}
               className="christmas-input"
               placeholder="https://example.com/gift"
+              maxLength={500}
             />
           </div>
 
@@ -114,6 +116,7 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
               onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
               className="christmas-input"
               placeholder="$10-50, Under $100, etc."
+              maxLength={100}
             />
           </div>
 
@@ -128,6 +131,7 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
               onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
               className="christmas-input"
               placeholder="https://example.com/image.jpg"
+              maxLength={500}
             />
           </div>
 

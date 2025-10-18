@@ -31,6 +31,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Item name and author name are required' }, { status: 400 });
     }
 
+    // Validate field lengths to prevent database errors
+    if (item_name.trim().length > 255) {
+      return NextResponse.json({ error: 'Item name is too long (max 255 characters)' }, { status: 400 });
+    }
+    if (link && link.trim().length > 500) {
+      return NextResponse.json({ error: 'Link is too long (max 500 characters)' }, { status: 400 });
+    }
+    if (price_range && price_range.trim().length > 100) {
+      return NextResponse.json({ error: 'Price range is too long (max 100 characters)' }, { status: 400 });
+    }
+    if (image_url && image_url.trim().length > 500) {
+      return NextResponse.json({ error: 'Image URL is too long (max 500 characters)' }, { status: 400 });
+    }
+
     // Get author ID
     const { data: author, error: authorError } = await supabase
       .from('users')

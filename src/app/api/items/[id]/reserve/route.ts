@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         updated_at: new Date().toISOString(),
       })
       .eq('id', itemId)
-      .eq('gifter_id', null) // Additional safety check
+      .is('gifter_id', null) // Additional safety check
       .select(`
         *,
         author:users!items_author_id_fkey(id, name),

@@ -567,12 +567,11 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                           <p className="text-sm font-bold text-christmas-green flex items-center">
                             🎅{" "}
                             <span className="ml-2">
-                              Reserved by{" "}
-                              {item.gifter?.name === currentUser
-                                ? "You"
-                                : item.gifter?.name}
-                              !
+                              Someone has reserved this gift for you! 🎁
                             </span>
+                          </p>
+                          <p className="text-xs text-christmas-green/80 mt-1">
+                            It's a surprise! You'll find out who on Christmas Day.
                           </p>
                         </div>
                       )}
