@@ -21,7 +21,31 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: 'Gifter not found' }, { status: 404 });
     }
 
-    // Reserve the item
+    // First, check if the item is already reserved
+    const { data: existingItem, error: checkError } = await supabase
+      .from('items')
+      .select(`
+        *,
+        author:users!items_author_id_fkey(id, name),
+        gifter:users!items_gifter_id_fkey(id, name)
+      `)
+      .eq('id', itemId)
+      .single();
+
+    if (checkError) {
+      return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    }
+
+    // Check if already reserved
+    if (existingItem.gifter_id) {
+      return NextResponse.json({ 
+        error: 'This gift has already been reserved by someone else! 🎅',
+        item: existingItem,
+        alreadyReserved: true
+      }, { status: 409 }); // 409 Conflict
+    }
+
+    // Reserve the item (only if not already reserved)
     const { data: item, error } = await supabase
       .from('items')
       .update({
@@ -29,6 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         updated_at: new Date().toISOString(),
       })
       .eq('id', itemId)
+      .eq('gifter_id', null) // Additional safety check
       .select(`
         *,
         author:users!items_author_id_fkey(id, name),
@@ -37,7 +62,34 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       .single();
 
     if (error) {
+      // If the update failed (likely due to race condition), check again
+      const { data: reCheckItem } = await supabase
+        .from('items')
+        .select(`
+          *,
+          author:users!items_author_id_fkey(id, name),
+          gifter:users!items_gifter_id_fkey(id, name)
+        `)
+        .eq('id', itemId)
+        .single();
+
+      if (reCheckItem?.gifter_id) {
+        return NextResponse.json({ 
+          error: 'This gift was just reserved by someone else! 🎅',
+          item: reCheckItem,
+          alreadyReserved: true
+        }, { status: 409 });
+      }
+      
       throw error;
+    }
+
+    // Double-check that the reservation was successful
+    if (!item || !item.gifter_id) {
+      return NextResponse.json({ 
+        error: 'Failed to reserve the gift. It may have been reserved by someone else.',
+        alreadyReserved: true
+      }, { status: 409 });
     }
 
     return NextResponse.json({ item });

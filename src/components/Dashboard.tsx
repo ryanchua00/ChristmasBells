@@ -130,12 +130,46 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
       });
 
       const result = await response.json();
-      if (result.item) {
+      
+      if (response.ok && result.item) {
+        // Success - update the item in the list
         setItems(items.map(i => i.id === item.id ? result.item : i));
         toast.success('🎅 You\'re now the secret Santa for this gift!');
         setReserveDialog({ isOpen: false, item: null });
+      } else if (result.alreadyReserved) {
+        // Item was already reserved - update the item if provided and show specific message
+        if (result.item) {
+          setItems(items.map(i => i.id === item.id ? result.item : i));
+        }
+        toast.error(result.error || '🎅 Oops! Someone else just reserved this gift!');
+        setReserveDialog({ isOpen: false, item: null });
+        // Refresh the items to get the latest state
+        fetchItems();
       } else {
-        toast.error(getRandomMessage('error'));
+        toast.error(result.error || getRandomMessage('error'));
+      }
+    } catch (error) {
+      toast.error(getRandomMessage('error'));
+    }
+  };
+
+  const handleUnreserveItem = async (item: Item) => {
+    if (!confirm('🎄 Are you sure you want to unreserve this gift?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/items/${item.id}/reserve`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+      
+      if (response.ok && result.item) {
+        setItems(items.map(i => i.id === item.id ? result.item : i));
+        toast.success('🎁 Gift unreserved! It\'s available for others now.');
+      } else {
+        toast.error(result.error || getRandomMessage('error'));
       }
     } catch (error) {
       toast.error(getRandomMessage('error'));
@@ -206,7 +240,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
               </button>
             </div>
             
-            <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-320px)] pr-2">
+            <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-320px)] pr-2 christmas-scroll">
               {(groupedItems[currentUser] || []).length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">🎁</div>
@@ -304,7 +338,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
               </span>
             </h2>
             
-            <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-280px)] pr-2">
+            <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-280px)] pr-2 christmas-scroll">
               {Object.entries(groupedItems)
                 .filter(([authorName]) => authorName !== currentUser)
                 .map(([authorName, userItems]) => (
@@ -315,84 +349,111 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                     </h3>
                     
                     <div className="grid gap-4">
-                      {userItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className={`p-4 rounded-xl transition-all duration-300 ${
-                            item.gifter_id
-                              ? 'christmas-gift-card-reserved'
-                              : 'christmas-gift-card cursor-pointer'
-                          }`}
-                          onClick={() => !item.gifter_id && setReserveDialog({ isOpen: true, item })}
-                        >
-                          <div className="flex justify-between items-start mb-3">
-                            <h4 className="font-bold text-gray-800 flex items-center">
-                              <Gift className="w-4 h-4 mr-2 text-christmas-red" />
-                              {item.item_name}
-                            </h4>
-                            {item.gifter_id && (
-                              <span className="text-xs bg-gray-500 text-white px-2 py-1 rounded-full">
-                                Reserved
-                              </span>
-                            )}
-                          </div>
-
-                          {item.image_url && (
-                            <div className="mb-3">
-                              <img
-                                src={item.image_url}
-                                alt={item.item_name}
-                                className="w-full h-32 object-cover rounded-lg shadow-sm"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
+                      {userItems.map((item) => {
+                        const isMyReservation = item.gifter_id && item.gifter?.name === currentUser;
+                        const isReserved = item.gifter_id && !isMyReservation;
+                        
+                        return (
+                          <div
+                            key={item.id}
+                            className={`p-5 transition-all duration-300 ${
+                              isMyReservation
+                                ? 'christmas-gift-card-my-reservation'
+                                : isReserved
+                                ? 'christmas-gift-card-reserved'
+                                : 'christmas-gift-card cursor-pointer'
+                            }`}
+                            onClick={() => {
+                              if (isMyReservation) {
+                                handleUnreserveItem(item);
+                              } else if (!item.gifter_id) {
+                                setReserveDialog({ isOpen: true, item });
+                              }
+                            }}
+                          >
+                            <div className="flex justify-between items-start mb-4">
+                              <h4 className="font-bold text-gray-900 flex items-center text-base">
+                                <Gift className="w-5 h-5 mr-2 text-christmas-red" />
+                                {item.item_name}
+                              </h4>
+                              {isMyReservation && (
+                                <span className="text-xs bg-green-600 text-white px-3 py-1 rounded-full font-medium">
+                                  My Gift
+                                </span>
+                              )}
+                              {isReserved && (
+                                <span className="text-xs bg-gray-500 text-white px-3 py-1 rounded-full">
+                                  Reserved
+                                </span>
+                              )}
                             </div>
-                          )}
 
-                          <div className="space-y-2">
-                            {item.price_range && (
-                              <p className="text-xs text-gray-600 flex items-center">
-                                <DollarSign className="w-3 h-3 mr-1" />
-                                {item.price_range}
-                              </p>
-                            )}
-
-                            {item.link && (
-                              <a
-                                href={item.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-600 hover:underline flex items-center"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <ExternalLink className="w-3 h-3 mr-1" />
-                                View Item
-                              </a>
-                            )}
-
-                            {item.gifter_id ? (
-                              <div className="bg-gray-200 p-2 rounded text-center">
-                                <p className="text-xs font-medium text-gray-600">
-                                  🎅 Reserved by {item.gifter?.name === currentUser ? 'You' : 'Someone'}
-                                </p>
-                              </div>
-                            ) : (
-                              <div className="text-center pt-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setReserveDialog({ isOpen: true, item });
+                            {item.image_url && (
+                              <div className="mb-4">
+                                <img
+                                  src={item.image_url}
+                                  alt={item.item_name}
+                                  className="w-full h-36 object-cover rounded-lg shadow-sm"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
                                   }}
-                                  className="christmas-button-secondary w-full text-xs py-2"
-                                >
-                                  🎁 I'll Get This!
-                                </button>
+                                />
                               </div>
                             )}
+
+                            <div className="space-y-3">
+                              {item.price_range && (
+                                <p className="text-sm text-gray-700 flex items-center bg-gray-50 px-3 py-2 rounded-lg">
+                                  <DollarSign className="w-4 h-4 mr-2 text-christmas-gold" />
+                                  <strong>Price:</strong> <span className="ml-1">{item.price_range}</span>
+                                </p>
+                              )}
+
+                              {item.link && (
+                                <a
+                                  href={item.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <ExternalLink className="w-4 h-4 mr-2" />
+                                  View Item Online
+                                </a>
+                              )}
+
+                              {isMyReservation ? (
+                                <div className="bg-green-100 border border-green-300 p-3 rounded-lg text-center">
+                                  <p className="text-sm font-bold text-green-800 mb-2">
+                                    🎅 You reserved this gift!
+                                  </p>
+                                  <p className="text-xs text-green-600">
+                                    Click to unreserve if you change your mind
+                                  </p>
+                                </div>
+                              ) : isReserved ? (
+                                <div className="bg-gray-100 p-3 rounded-lg text-center">
+                                  <p className="text-sm font-medium text-gray-600">
+                                    🎅 Reserved by someone else
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="text-center pt-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setReserveDialog({ isOpen: true, item });
+                                    }}
+                                    className="christmas-button-secondary w-full text-sm py-3"
+                                  >
+                                    🎁 I'll Get This!
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
