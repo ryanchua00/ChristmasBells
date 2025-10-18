@@ -15,16 +15,16 @@ export default function ReserveDialog({ isOpen, onClose, onConfirm, item, curren
   if (!isOpen || !item) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="christmas-card p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-christmas-green flex items-center">
-            <Gift className="mr-2" />
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
+      <div className="christmas-card p-4 sm:p-6 w-full max-w-md max-h-[95vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-christmas-green flex items-center">
+            <Gift className="mr-2 w-5 h-5 sm:w-6 sm:h-6" />
             Reserve Gift
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-gray-500 hover:text-gray-700 transition-colors p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <X size={24} />
           </button>
@@ -80,13 +80,13 @@ export default function ReserveDialog({ isOpen, onClose, onConfirm, item, curren
           <div className="flex gap-3 pt-4">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-h-[48px] text-sm sm:text-base"
             >
               Cancel
             </button>
             <button
               onClick={onConfirm}
-              className="christmas-button-secondary flex-1"
+              className="christmas-button-secondary flex-1 min-h-[48px] text-sm sm:text-base"
             >
               🎄 Yes, I'll Get This!
             </button>

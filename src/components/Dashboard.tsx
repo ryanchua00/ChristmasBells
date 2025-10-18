@@ -239,22 +239,22 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
   }
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen p-2 sm:p-4">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="christmas-card p-6 mb-8">
-          <div className="flex justify-between items-center">
+        <div className="christmas-card p-4 sm:p-6 mb-4 sm:mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-christmas-red flex items-center">
-                🎄 Christmas Gift Exchange
+              <h1 className="text-2xl sm:text-3xl font-bold text-christmas-red flex items-center">
+                🎄 <span className="ml-2">Christmas Gift Exchange</span>
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">
                 Welcome back, <strong>{currentUser}</strong>! 🎅
               </p>
             </div>
             <button
               onClick={onLogout}
-              className="px-6 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center font-semibold"
+              className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center font-semibold text-sm sm:text-base min-h-[44px]"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
@@ -262,22 +262,23 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
           </div>
         </div>
 
-        {/* Horizontal Split Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-200px)]">
-          {/* Right Side - Others' Gifts */}
-          <div className="christmas-section">
-            <h2 className="text-3xl font-bold text-christmas-green mb-6 flex items-center">
-              🎁 Family Gifts
-              <span className="ml-3 text-lg font-normal text-gray-600">
-                (
+        {/* Responsive Layout */}
+        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 min-h-[calc(100vh-180px)] lg:h-[calc(100vh-200px)]">
+          {/* Family Gifts Section */}
+          <div className="christmas-section order-2 lg:order-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-2">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-christmas-green flex items-center">
+                🎁 <span className="ml-2">Family Gifts</span>
+              </h2>
+              <span className="text-sm sm:text-base lg:text-lg font-normal text-gray-600">
                 {Object.entries(groupedItems)
                   .filter(([name]) => name !== currentUser)
                   .reduce((acc, [, items]) => acc + items.length, 0)}{" "}
-                items)
+                items
               </span>
-            </h2>
+            </div>
 
-            <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-280px)] pr-2 christmas-scroll">
+            <div className="space-y-4 sm:space-y-6 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-280px)] pr-2 christmas-scroll">
               {Object.entries(groupedItems)
                 .filter(([authorName]) => authorName !== currentUser)
                 .map(([authorName, userItems]) => {
@@ -286,7 +287,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                     <div key={authorName} className="space-y-4">
                       <button
                         onClick={() => toggleUserExpanded(authorName)}
-                        className="w-full text-xl font-bold text-gray-800 flex items-center justify-between sticky top-0 bg-white backdrop-blur-sm py-3 rounded-lg px-4 border border-christmas-gold/20 hover:border-christmas-gold/40 hover:bg-gray-50 transition-all duration-200"
+                        className="w-full text-base sm:text-lg lg:text-xl font-bold text-gray-800 flex items-center justify-between sticky top-0 bg-white backdrop-blur-sm py-3 sm:py-4 rounded-lg px-3 sm:px-4 border border-christmas-gold/20 hover:border-christmas-gold/40 hover:bg-gray-50 transition-all duration-200 min-h-[48px]"
                       >
                         <div className="flex items-center">
                           <User className="w-5 h-5 mr-2 text-christmas-green" />
@@ -437,27 +438,29 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
               )}
             </div>
           </div>
-          {/* Left Side - My Wishlist */}
-          <div className="christmas-section">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold text-christmas-red flex items-center">
-                🎄 My Wishlist
-                <span className="ml-3 text-lg font-normal text-gray-600">
+          {/* My Wishlist Section */}
+          <div className="christmas-section order-1 lg:order-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-christmas-red flex items-center">
+                  🎄 <span className="ml-2">My Wishlist</span>
+                </h2>
+                <span className="text-sm sm:text-base lg:text-lg font-normal text-gray-600">
                   ({(groupedItems[currentUser] || []).length} items)
                 </span>
-              </h2>
+              </div>
               <button
                 onClick={() =>
                   setItemDialog({ isOpen: true, title: "Add New Gift" })
                 }
-                className="christmas-button flex items-center text-sm"
+                className="christmas-button flex items-center text-sm sm:text-base min-h-[44px] px-4 py-2"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Gift
               </button>
             </div>
 
-            <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-320px)] pr-2 py-2 christmas-scroll">
+            <div className="space-y-4 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-320px)] pr-2 py-2 christmas-scroll">
               {(groupedItems[currentUser] || []).length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">🎁</div>

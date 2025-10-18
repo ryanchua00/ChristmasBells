@@ -42,19 +42,19 @@ export default function AuthForm({ onLogin }: AuthFormProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="christmas-card p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🎄</div>
-          <h1 className="text-3xl font-bold text-christmas-red mb-2">
+    <div className="min-h-screen flex items-center justify-center p-3 sm:p-4">
+      <div className="christmas-card p-6 sm:p-8 w-full max-w-md">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="text-5xl sm:text-6xl mb-4">🎄</div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-christmas-red mb-2">
             Christmas Gift Exchange
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             Welcome to our family wishlist! 🎁
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <User className="inline w-4 h-4 mr-1" />
@@ -64,7 +64,7 @@ export default function AuthForm({ onLogin }: AuthFormProps) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="christmas-input"
+              className="christmas-input text-base"
               placeholder="Enter your name..."
               required
             />
@@ -79,7 +79,7 @@ export default function AuthForm({ onLogin }: AuthFormProps) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="christmas-input"
+              className="christmas-input text-base"
               placeholder="Ask Santa for the password..."
               required
             />
@@ -88,7 +88,7 @@ export default function AuthForm({ onLogin }: AuthFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className="christmas-button w-full"
+            className="christmas-button w-full min-h-[48px] text-base"
           >
             {loading ? '🎅 Checking with Santa...' : '🎄 Enter Christmas Magic'}
           </button>
