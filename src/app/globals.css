@@ -34,11 +34,7 @@
 
 @layer components {
   .christmas-card {
-    @apply bg-gradient-to-br from-white via-red-50/30 to-green-50/30 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-christmas-gold/30 relative z-10;
-    background-image: 
-      radial-gradient(circle at 20% 80%, rgba(220, 38, 38, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(5, 150, 105, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
+    @apply bg-white backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-christmas-gold/30 relative z-10;
   }
   
   .christmas-gift-card {
@@ -46,7 +42,7 @@
   }
   
   .christmas-gift-card:hover {
-    transform: translateY(-2px);
+    @apply -translate-y-0.5;
   }
   
   .christmas-gift-card-reserved {
@@ -59,7 +55,7 @@
   
   .christmas-gift-card-my-reservation:hover {
     @apply border-green-400 shadow-lg;
-    transform: translateY(-2px);
+    @apply -translate-y-0.5;
   }
   
   .christmas-button {
@@ -101,14 +97,11 @@
   }
   
   .christmas-input {
-    @apply w-full px-4 py-3 border-2 border-christmas-gold/30 rounded-xl focus:ring-4 focus:ring-christmas-gold/20 focus:border-christmas-gold transition-all duration-300 bg-white/90 backdrop-blur-sm;
+    @apply w-full px-4 py-3 border-2 border-christmas-gold/30 rounded-xl focus:ring-4 focus:ring-christmas-gold/20 focus:border-christmas-gold transition-all duration-300 bg-white backdrop-blur-sm;
   }
   
   .christmas-section {
-    @apply bg-white/98 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-christmas-gold/30 p-6;
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(220, 38, 38, 0.02) 0%, transparent 50%),
-      radial-gradient(circle at 90% 80%, rgba(5, 150, 105, 0.02) 0%, transparent 50%);
+    @apply bg-white backdrop-blur-sm rounded-2xl shadow-xl border-2 border-christmas-gold/30 p-6;
   }
   
   .christmas-scroll {
