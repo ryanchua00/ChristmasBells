@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { Item, CreateItemData, UpdateItemData } from "../types";
 import { getRandomMessage } from "../lib/utils";
 import ItemDialog from "./ItemDialog";
-import ReserveDialog from "./ReserveDialog";
+// import ReserveDialog from "./ReserveDialog"; // Commented out - reservation functionality disabled for now
 import CommentDialog from "./CommentDialog";
 
 interface DashboardProps {
@@ -22,10 +22,10 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     item?: Item;
     title: string;
   }>({ isOpen: false, title: "" });
-  const [reserveDialog, setReserveDialog] = useState<{
-    isOpen: boolean;
-    item: Item | null;
-  }>({ isOpen: false, item: null });
+  // const [reserveDialog, setReserveDialog] = useState<{
+  //   isOpen: boolean;
+  //   item: Item | null;
+  // }>({ isOpen: false, item: null }); // Commented out - reservation functionality disabled for now
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   const [commentDialog, setCommentDialog] = useState<{
     isOpen: boolean;
@@ -155,62 +155,63 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     }
   };
 
-  const handleReserveItem = async (item: Item) => {
-    try {
-      const response = await fetch(`/api/items/${item.id}/reserve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gifter_name: currentUser }),
-      });
+  // RESERVATION FUNCTIONALITY - COMMENTED OUT FOR NOW
+  // const handleReserveItem = async (item: Item) => {
+  //   try {
+  //     const response = await fetch(`/api/items/${item.id}/reserve`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ gifter_name: currentUser }),
+  //     });
 
-      const result = await response.json();
+  //     const result = await response.json();
 
-      if (response.ok && result.item) {
-        // Success - update the item in the list
-        setItems(items.map((i) => (i.id === item.id ? result.item : i)));
-        toast.success("🎅 You're now the secret Santa for this gift!");
-        setReserveDialog({ isOpen: false, item: null });
-      } else if (result.alreadyReserved) {
-        // Item was already reserved - update the item if provided and show specific message
-        if (result.item) {
-          setItems(items.map((i) => (i.id === item.id ? result.item : i)));
-        }
-        toast.error(
-          result.error || "🎅 Oops! Someone else just reserved this gift!"
-        );
-        setReserveDialog({ isOpen: false, item: null });
-        // Refresh the items to get the latest state
-        fetchItems();
-      } else {
-        toast.error(result.error || getRandomMessage("error"));
-      }
-    } catch (error) {
-      toast.error(getRandomMessage("error"));
-    }
-  };
+  //     if (response.ok && result.item) {
+  //       // Success - update the item in the list
+  //       setItems(items.map((i) => (i.id === item.id ? result.item : i)));
+  //       toast.success("🎅 You're now the secret Santa for this gift!");
+  //       setReserveDialog({ isOpen: false, item: null });
+  //     } else if (result.alreadyReserved) {
+  //       // Item was already reserved - update the item if provided and show specific message
+  //       if (result.item) {
+  //         setItems(items.map((i) => (i.id === item.id ? result.item : i)));
+  //       }
+  //       toast.error(
+  //         result.error || "🎅 Oops! Someone else just reserved this gift!"
+  //       );
+  //       setReserveDialog({ isOpen: false, item: null });
+  //       // Refresh the items to get the latest state
+  //       fetchItems();
+  //     } else {
+  //       toast.error(result.error || getRandomMessage("error"));
+  //     }
+  //   } catch (error) {
+  //     toast.error(getRandomMessage("error"));
+  //   }
+  // };
 
-  const handleUnreserveItem = async (item: Item) => {
-    if (!confirm("🎄 Are you sure you want to unreserve this gift?")) {
-      return;
-    }
+  // const handleUnreserveItem = async (item: Item) => {
+  //   if (!confirm("🎄 Are you sure you want to unreserve this gift?")) {
+  //     return;
+  //   }
 
-    try {
-      const response = await fetch(`/api/items/${item.id}/reserve`, {
-        method: "DELETE",
-      });
+  //   try {
+  //     const response = await fetch(`/api/items/${item.id}/reserve`, {
+  //       method: "DELETE",
+  //     });
 
-      const result = await response.json();
+  //     const result = await response.json();
 
-      if (response.ok && result.item) {
-        setItems(items.map((i) => (i.id === item.id ? result.item : i)));
-        toast.success("🎁 Gift unreserved! It's available for others now.");
-      } else {
-        toast.error(result.error || getRandomMessage("error"));
-      }
-    } catch (error) {
-      toast.error(getRandomMessage("error"));
-    }
-  };
+  //     if (response.ok && result.item) {
+  //       setItems(items.map((i) => (i.id === item.id ? result.item : i)));
+  //       toast.success("🎁 Gift unreserved! It's available for others now.");
+  //     } else {
+  //       toast.error(result.error || getRandomMessage("error"));
+  //     }
+  //   } catch (error) {
+  //     toast.error(getRandomMessage("error"));
+  //   }
+  // };
 
   const groupedItems = items.reduce((acc, item) => {
     const authorName = item.author?.name || "Unknown";
@@ -306,20 +307,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                             return (
                               <div
                                 key={item.id}
-                                className={`p-5 transition-all duration-300 ${
-                                  isMyReservation
-                                    ? "christmas-gift-card-my-reservation"
-                                    : isReserved
-                                    ? "christmas-gift-card-reserved"
-                                    : "christmas-gift-card cursor-pointer"
-                                }`}
-                                onClick={() => {
-                                  if (isMyReservation) {
-                                    handleUnreserveItem(item);
-                                  } else if (!item.gifter_id) {
-                                    setReserveDialog({ isOpen: true, item });
-                                  }
-                                }}
+                                className="christmas-gift-card p-5"
                               >
                                 <div className="flex justify-between items-start mb-4">
                                   <h4 className="font-bold text-gray-900 flex items-center text-base">
@@ -337,16 +325,6 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                                     >
                                       <MessageCircle size={18} />
                                     </button>
-                                    {isMyReservation && (
-                                      <span className="text-xs bg-green-600 text-white px-3 py-1 rounded-full font-medium">
-                                        My Gift
-                                      </span>
-                                    )}
-                                    {isReserved && (
-                                      <span className="text-xs bg-gray-500 text-white px-3 py-1 rounded-full">
-                                        Reserved
-                                      </span>
-                                    )}
                                   </div>
                                 </div>
 
@@ -387,7 +365,8 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                                     </a>
                                   )}
 
-                                  {isMyReservation ? (
+                                  {/* RESERVATION STATUS - COMMENTED OUT FOR NOW */}
+                                  {/* {isMyReservation ? (
                                     <div className="bg-green-100 border border-green-300 p-3 rounded-lg text-center">
                                       <p className="text-sm font-bold text-green-800 mb-2">
                                         🎅 You reserved this gift!
@@ -396,6 +375,15 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                                         Click to unreserve if you change your
                                         mind
                                       </p>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleUnreserveItem(item);
+                                        }}
+                                        className="christmas-button-secondary w-full text-sm py-3"
+                                      >
+                                        🎁 Unreserve
+                                      </button>
                                     </div>
                                   ) : isReserved ? (
                                     <div className="bg-gray-100 p-3 rounded-lg text-center">
@@ -418,7 +406,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                                         🎁 I'll Get This!
                                       </button>
                                     </div>
-                                  )}
+                                  )} */}
                                 </div>
                               </div>
                             );
@@ -598,7 +586,8 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
         title={itemDialog.title}
       />
 
-      <ReserveDialog
+      {/* RESERVATION DIALOG - COMMENTED OUT FOR NOW */}
+      {/* <ReserveDialog
         isOpen={reserveDialog.isOpen}
         onClose={() => setReserveDialog({ isOpen: false, item: null })}
         onConfirm={() =>
@@ -606,7 +595,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
         }
         item={reserveDialog.item}
         currentUser={currentUser}
-      />
+      /> */}
 
       <CommentDialog
         isOpen={commentDialog.isOpen}
