@@ -1,7 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, LogOut, Edit, Trash2, Gift, ExternalLink, DollarSign, User, ChevronDown, ChevronRight, MessageCircle } from 'lucide-react';
+import {
+  Plus,
+  LogOut,
+  Edit,
+  Trash2,
+  Gift,
+  ExternalLink,
+  DollarSign,
+  User,
+  ChevronDown,
+  ChevronRight,
+  MessageCircle,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { Item, CreateItemData, UpdateItemData } from "../types";
 import { getRandomMessage } from "../lib/utils";
@@ -35,7 +47,9 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     isOpen: boolean;
     item: Item | null;
   }>({ isOpen: false, item: null });
-  const [commentCounts, setCommentCounts] = useState<Record<number, number>>({});
+  const [commentCounts, setCommentCounts] = useState<Record<number, number>>(
+    {}
+  );
 
   useEffect(() => {
     fetchItems();
@@ -99,7 +113,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
   const fetchCommentCounts = async () => {
     try {
       const counts: Record<number, number> = {};
-      
+
       // Fetch comment counts for all items in parallel
       await Promise.all(
         items.map(async (item) => {
@@ -108,12 +122,15 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
             const data = await response.json();
             counts[item.id] = data.comments?.length || 0;
           } catch (error) {
-            console.error(`Error fetching comments for item ${item.id}:`, error);
+            console.error(
+              `Error fetching comments for item ${item.id}:`,
+              error
+            );
             counts[item.id] = 0;
           }
         })
       );
-      
+
       setCommentCounts(counts);
     } catch (error) {
       console.error("Error fetching comment counts:", error);
@@ -125,7 +142,10 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
       const response = await fetch("/api/items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, author_name: currentUser.toLowerCase() }),
+        body: JSON.stringify({
+          ...data,
+          author_name: currentUser.toLowerCase(),
+        }),
       });
 
       const result = await response.json();
@@ -251,7 +271,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
   // Helper function to get current user's items (case-insensitive)
   const getCurrentUserItems = () => {
     const userKey = Object.keys(groupedItems).find(
-      key => key.toLowerCase() === currentUser.toLowerCase()
+      (key) => key.toLowerCase() === currentUser.toLowerCase()
     );
     return userKey ? groupedItems[userKey] : [];
   };
@@ -283,11 +303,35 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
             </div>
             <button
               onClick={onLogout}
-              className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center font-semibold text-sm sm:text-base min-h-[44px]"
+              className="flex flex-row items-center christmas-button-secondary text-sm sm:text-base"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </button>
+          </div>
+        </div>
+
+        {/* Phase Information Card */}
+        <div className="mb-6 p-4 bg-christmas-green rounded-lg border border-christmas-gold/50 shadow-md">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 w-10 h-10 bg-christmas-gold/30 rounded-full flex items-center justify-center mr-4">
+              <span className="text-xl">🎁</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-white mb-2 flex items-center">
+                📝 Gift Adding Phase
+              </h3>
+              <p className="text-white text-sm leading-relaxed">
+                We're currently in the <strong>gift collection phase</strong>!
+                Everyone is adding their Christmas wishes to their wishlists.
+                Once everyone has finished adding their gifts, we'll assign your
+                Secret Santas and the fun begins! 🎅✨
+              </p>
+              <div className="mt-3 flex items-center text-xs text-white">
+                <span className="w-2 h-2 bg-christmas-gold rounded-full mr-2 animate-pulse"></span>
+                Phase 1 of 2: Building Wishlists
+              </div>
+            </div>
           </div>
         </div>
 
@@ -301,7 +345,9 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
               </h2>
               <span className="text-sm sm:text-base lg:text-lg font-normal text-gray-600">
                 {Object.entries(groupedItems)
-                  .filter(([name]) => name.toLowerCase() !== currentUser.toLowerCase())
+                  .filter(
+                    ([name]) => name.toLowerCase() !== currentUser.toLowerCase()
+                  )
                   .reduce((acc, [, items]) => acc + items.length, 0)}{" "}
                 items
               </span>
@@ -309,7 +355,10 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
 
             <div className="space-y-4 sm:space-y-6 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-280px)] pr-2 christmas-scroll">
               {Object.entries(groupedItems)
-                .filter(([authorName]) => authorName.toLowerCase() !== currentUser.toLowerCase())
+                .filter(
+                  ([authorName]) =>
+                    authorName.toLowerCase() !== currentUser.toLowerCase()
+                )
                 .map(([authorName, userItems]) => {
                   const isExpanded = expandedUsers.has(authorName);
                   return (
@@ -334,7 +383,8 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                           {userItems.map((item) => {
                             const isMyReservation =
                               item.gifter_id &&
-                              item.gifter?.name?.toLowerCase() === currentUser.toLowerCase();
+                              item.gifter?.name?.toLowerCase() ===
+                                currentUser.toLowerCase();
                             const isReserved =
                               item.gifter_id && !isMyReservation;
 
@@ -352,7 +402,10 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        setCommentDialog({ isOpen: true, item });
+                                        setCommentDialog({
+                                          isOpen: true,
+                                          item,
+                                        });
                                       }}
                                       className="p-2 text-gray-500 hover:text-christmas-gold transition-colors rounded-lg hover:bg-gray-50 relative"
                                       title="View comments"
@@ -503,27 +556,35 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                   {getCurrentUserItems().length}/4 gifts
                 </span>
               </div>
-              
+
               <div className="w-full bg-gray-200 rounded-full h-3 mb-2 overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-christmas-red to-christmas-green transition-all duration-500 ease-out rounded-full relative"
-                  style={{ width: `${Math.min((getCurrentUserItems().length / 4) * 100, 100)}%` }}
+                  style={{
+                    width: `${Math.min(
+                      (getCurrentUserItems().length / 4) * 100,
+                      100
+                    )}%`,
+                  }}
                 >
                   {getCurrentUserItems().length >= 4 && (
                     <div className="absolute inset-0 bg-gradient-to-r from-christmas-gold/30 to-christmas-gold/10 animate-pulse"></div>
                   )}
                 </div>
               </div>
-              
+
               <div className="text-xs text-gray-600 text-center">
                 {getCurrentUserItems().length === 0 && (
                   <span>🎁 Start building your Christmas wishlist!</span>
                 )}
-                {getCurrentUserItems().length > 0 && getCurrentUserItems().length < 4 && (
-                  <span>
-                    ✨ Add {4 - getCurrentUserItems().length} more gift{4 - getCurrentUserItems().length !== 1 ? 's' : ''} to complete your wishlist!
-                  </span>
-                )}
+                {getCurrentUserItems().length > 0 &&
+                  getCurrentUserItems().length < 4 && (
+                    <span>
+                      ✨ Add {4 - getCurrentUserItems().length} more gift
+                      {4 - getCurrentUserItems().length !== 1 ? "s" : ""} to
+                      complete your wishlist!
+                    </span>
+                  )}
                 {getCurrentUserItems().length >= 4 && (
                   <span className="text-christmas-green font-medium">
                     🎉 Perfect! Your wishlist is complete!
@@ -567,7 +628,9 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                       </h3>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => setCommentDialog({ isOpen: true, item })}
+                          onClick={() =>
+                            setCommentDialog({ isOpen: true, item })
+                          }
                           className="p-2 text-gray-500 hover:text-christmas-gold transition-colors rounded-lg hover:bg-gray-50 relative"
                           title="View comments on your item"
                         >
@@ -591,7 +654,9 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                           <Edit size={18} />
                         </button>
                         <button
-                          onClick={() => setDeleteDialog({ isOpen: true, item })}
+                          onClick={() =>
+                            setDeleteDialog({ isOpen: true, item })
+                          }
                           className="p-2 text-gray-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
                           title="Delete item"
                         >
@@ -643,7 +708,8 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                             </span>
                           </p>
                           <p className="text-xs text-christmas-green/80 mt-1">
-                            It's a surprise! You'll find out who on Christmas Day.
+                            It's a surprise! You'll find out who on Christmas
+                            Day.
                           </p>
                         </div>
                       )}
@@ -689,9 +755,9 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
         onCommentAdded={() => {
           // Refresh comment counts when a comment is added
           if (commentDialog.item) {
-            setCommentCounts(prev => ({
+            setCommentCounts((prev) => ({
               ...prev,
-              [commentDialog.item!.id]: (prev[commentDialog.item!.id] || 0) + 1
+              [commentDialog.item!.id]: (prev[commentDialog.item!.id] || 0) + 1,
             }));
           }
         }}
@@ -709,7 +775,9 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">Delete Gift</h3>
-                  <p className="text-red-100 text-sm">This action cannot be undone</p>
+                  <p className="text-red-100 text-sm">
+                    This action cannot be undone
+                  </p>
                 </div>
               </div>
             </div>
