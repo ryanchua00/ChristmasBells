@@ -1,23 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Plus,
-  LogOut,
-  Edit,
-  Trash2,
-  Gift,
-  ExternalLink,
-  DollarSign,
-  User,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
+import { Plus, LogOut, Edit, Trash2, Gift, ExternalLink, DollarSign, User, ChevronDown, ChevronRight, MessageCircle } from 'lucide-react';
 import toast from "react-hot-toast";
 import { Item, CreateItemData, UpdateItemData } from "../types";
 import { getRandomMessage } from "../lib/utils";
 import ItemDialog from "./ItemDialog";
 import ReserveDialog from "./ReserveDialog";
+import CommentDialog from "./CommentDialog";
 
 interface DashboardProps {
   currentUser: string;
@@ -37,6 +27,10 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     item: Item | null;
   }>({ isOpen: false, item: null });
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+  const [commentDialog, setCommentDialog] = useState<{
+    isOpen: boolean;
+    item: Item | null;
+  }>({ isOpen: false, item: null });
 
   useEffect(() => {
     fetchItems();
@@ -332,16 +326,28 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                                     <Gift className="w-5 h-5 mr-2 text-christmas-red" />
                                     {item.item_name}
                                   </h4>
-                                  {isMyReservation && (
-                                    <span className="text-xs bg-green-600 text-white px-3 py-1 rounded-full font-medium">
-                                      My Gift
-                                    </span>
-                                  )}
-                                  {isReserved && (
-                                    <span className="text-xs bg-gray-500 text-white px-3 py-1 rounded-full">
-                                      Reserved
-                                    </span>
-                                  )}
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setCommentDialog({ isOpen: true, item });
+                                      }}
+                                      className="p-2 text-gray-500 hover:text-christmas-gold transition-colors rounded-lg hover:bg-gray-50"
+                                      title="View comments"
+                                    >
+                                      <MessageCircle size={18} />
+                                    </button>
+                                    {isMyReservation && (
+                                      <span className="text-xs bg-green-600 text-white px-3 py-1 rounded-full font-medium">
+                                        My Gift
+                                      </span>
+                                    )}
+                                    {isReserved && (
+                                      <span className="text-xs bg-gray-500 text-white px-3 py-1 rounded-full">
+                                        Reserved
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
 
                                 {item.image_url && (
@@ -495,6 +501,13 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                       </h3>
                       <div className="flex gap-2">
                         <button
+                          onClick={() => setCommentDialog({ isOpen: true, item })}
+                          className="p-2 text-gray-500 hover:text-christmas-gold transition-colors rounded-lg hover:bg-gray-50"
+                          title="View comments on your item"
+                        >
+                          <MessageCircle size={18} />
+                        </button>
+                        <button
                           onClick={() =>
                             setItemDialog({
                               isOpen: true,
@@ -595,6 +608,21 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
         item={reserveDialog.item}
         currentUser={currentUser}
       />
+
+      <CommentDialog
+        isOpen={commentDialog.isOpen}
+        onClose={() => setCommentDialog({ isOpen: false, item: null })}
+        item={commentDialog.item}
+        currentUser={currentUser}
+      />
+
+      {/* Domain Cost Note */}
+      <div className="fixed bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-christmas-gold/30 p-3 text-xs text-gray-600 max-w-xs">
+        <p className="flex items-center">
+          <span className="mr-1">💰</span>
+          PS: Renewing the domain cost me $15 USD
+        </p>
+      </div>
     </div>
   );
 }

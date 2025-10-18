@@ -28,3 +28,16 @@ export interface CreateItemData {
 export interface UpdateItemData extends CreateItemData {
   id: number;
 }
+
+export interface Comment {
+  id: number;
+  item_id: number;
+  author_name: string;
+  comment_text: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCommentData {
+  comment_text: string;
+}
