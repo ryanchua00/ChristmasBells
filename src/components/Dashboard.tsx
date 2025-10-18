@@ -349,7 +349,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                                     <img
                                       src={item.image_url}
                                       alt={item.item_name}
-                                      className="w-full h-36 object-cover rounded-lg shadow-sm"
+                                      className="w-full h-full object-cover rounded-lg shadow-sm"
                                       onError={(e) => {
                                         e.currentTarget.style.display = "none";
                                       }}
