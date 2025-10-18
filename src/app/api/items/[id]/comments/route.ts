@@ -47,6 +47,8 @@ export async function POST(
       return NextResponse.json({ error: 'Comment text and author name are required' }, { status: 400 });
     }
 
+    const normalizedAuthorName = author_name.trim().toLowerCase();
+
     // Check if the item exists and get the author info
     const { data: itemData, error: itemError } = await supabase
       .from('items')
@@ -61,17 +63,17 @@ export async function POST(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 });
     }
 
-    // Check if user is trying to comment on their own item
-    if (itemData.author?.name === author_name) {
+    // Check if user is trying to comment on their own item (case-insensitive)
+    if (itemData.author?.name?.toLowerCase() === normalizedAuthorName) {
       return NextResponse.json({ error: 'Cannot comment on your own items' }, { status: 403 });
     }
 
-    // Create the comment
+    // Create the comment with normalized author name
     const { data: comment, error: commentError } = await supabase
       .from('comments')
       .insert({
         item_id: itemId,
-        author_name: author_name,
+        author_name: normalizedAuthorName,
         comment_text: comment_text.trim()
       })
       .select()

@@ -16,6 +16,7 @@ interface CommentDialogProps {
   onClose: () => void;
   item: Item | null;
   currentUser: string;
+  onCommentAdded?: () => void;
 }
 
 export default function CommentDialog({
@@ -23,6 +24,7 @@ export default function CommentDialog({
   onClose,
   item,
   currentUser,
+  onCommentAdded,
 }: CommentDialogProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -76,6 +78,7 @@ export default function CommentDialog({
         setComments([...comments, result.comment]);
         setNewComment("");
         toast.success("💬 Comment added!");
+        onCommentAdded?.(); // Notify parent component
       } else {
         toast.error(result.error || "Failed to add comment");
       }

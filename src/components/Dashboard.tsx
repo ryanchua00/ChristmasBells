@@ -31,6 +31,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     isOpen: boolean;
     item: Item | null;
   }>({ isOpen: false, item: null });
+  const [commentCounts, setCommentCounts] = useState<Record<number, number>>({});
 
   useEffect(() => {
     fetchItems();
@@ -38,11 +39,18 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     registerUser();
   }, []);
 
+  // Fetch comment counts when items change
+  useEffect(() => {
+    if (items.length > 0) {
+      fetchCommentCounts();
+    }
+  }, [items]);
+
   // Initialize expanded users when items are loaded
   useEffect(() => {
     if (items.length > 0) {
       const otherUsers = Object.keys(groupedItems).filter(
-        (name) => name !== currentUser
+        (name) => name.toLowerCase() !== currentUser.toLowerCase()
       );
       if (otherUsers.length > 0 && expandedUsers.size === 0) {
         setExpandedUsers(new Set([otherUsers[0]]));
@@ -65,7 +73,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
       await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: currentUser }),
+        body: JSON.stringify({ name: currentUser.toLowerCase() }),
       });
     } catch (error) {
       console.error("Error registering user:", error);
@@ -76,13 +84,35 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     try {
       const response = await fetch("/api/items");
       const data = await response.json();
-      if (data.items) {
-        setItems(data.items);
-      }
+      setItems(data.items || []);
     } catch (error) {
-      toast.error(getRandomMessage("error"));
+      console.error("Error fetching items:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCommentCounts = async () => {
+    try {
+      const counts: Record<number, number> = {};
+      
+      // Fetch comment counts for all items in parallel
+      await Promise.all(
+        items.map(async (item) => {
+          try {
+            const response = await fetch(`/api/items/${item.id}/comments`);
+            const data = await response.json();
+            counts[item.id] = data.comments?.length || 0;
+          } catch (error) {
+            console.error(`Error fetching comments for item ${item.id}:`, error);
+            counts[item.id] = 0;
+          }
+        })
+      );
+      
+      setCommentCounts(counts);
+    } catch (error) {
+      console.error("Error fetching comment counts:", error);
     }
   };
 
@@ -91,7 +121,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
       const response = await fetch("/api/items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, author_name: currentUser }),
+        body: JSON.stringify({ ...data, author_name: currentUser.toLowerCase() }),
       });
 
       const result = await response.json();
@@ -222,6 +252,14 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     return acc;
   }, {} as Record<string, Item[]>);
 
+  // Helper function to get current user's items (case-insensitive)
+  const getCurrentUserItems = () => {
+    const userKey = Object.keys(groupedItems).find(
+      key => key.toLowerCase() === currentUser.toLowerCase()
+    );
+    return userKey ? groupedItems[userKey] : [];
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -267,7 +305,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
               </h2>
               <span className="text-sm sm:text-base lg:text-lg font-normal text-gray-600">
                 {Object.entries(groupedItems)
-                  .filter(([name]) => name !== currentUser)
+                  .filter(([name]) => name.toLowerCase() !== currentUser.toLowerCase())
                   .reduce((acc, [, items]) => acc + items.length, 0)}{" "}
                 items
               </span>
@@ -275,7 +313,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
 
             <div className="space-y-4 sm:space-y-6 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-280px)] pr-2 christmas-scroll">
               {Object.entries(groupedItems)
-                .filter(([authorName]) => authorName !== currentUser)
+                .filter(([authorName]) => authorName.toLowerCase() !== currentUser.toLowerCase())
                 .map(([authorName, userItems]) => {
                   const isExpanded = expandedUsers.has(authorName);
                   return (
@@ -300,7 +338,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                           {userItems.map((item) => {
                             const isMyReservation =
                               item.gifter_id &&
-                              item.gifter?.name === currentUser;
+                              item.gifter?.name?.toLowerCase() === currentUser.toLowerCase();
                             const isReserved =
                               item.gifter_id && !isMyReservation;
 
@@ -320,10 +358,15 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                                         e.stopPropagation();
                                         setCommentDialog({ isOpen: true, item });
                                       }}
-                                      className="p-2 text-gray-500 hover:text-christmas-gold transition-colors rounded-lg hover:bg-gray-50"
+                                      className="p-2 text-gray-500 hover:text-christmas-gold transition-colors rounded-lg hover:bg-gray-50 relative"
                                       title="View comments"
                                     >
                                       <MessageCircle size={18} />
+                                      {commentCounts[item.id] > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-christmas-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                                          {commentCounts[item.id]}
+                                        </span>
+                                      )}
                                     </button>
                                   </div>
                                 </div>
@@ -418,7 +461,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                 })}
 
               {Object.entries(groupedItems).filter(
-                ([name]) => name !== currentUser
+                ([name]) => name.toLowerCase() !== currentUser.toLowerCase()
               ).length === 0 && (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">🎄</div>
@@ -440,7 +483,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                   🎄 <span className="ml-2">My Wishlist</span>
                 </h2>
                 <span className="text-sm sm:text-base lg:text-lg font-normal text-gray-600">
-                  ({(groupedItems[currentUser] || []).length} items)
+                  ({getCurrentUserItems().length} items)
                 </span>
               </div>
               <button
@@ -455,7 +498,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
             </div>
 
             <div className="space-y-4 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-320px)] pr-2 py-2 christmas-scroll">
-              {(groupedItems[currentUser] || []).length === 0 ? (
+              {getCurrentUserItems().length === 0 ? (
                 <div className="flex flex-col justify-center text-center py-12 ">
                   <div className="text-6xl mb-4">🎁</div>
                   <h3 className="text-xl font-bold text-gray-700 mb-2">
@@ -480,7 +523,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                   </div>
                 </div>
               ) : (
-                (groupedItems[currentUser] || []).map((item) => (
+                getCurrentUserItems().map((item) => (
                   <div key={item.id} className="christmas-gift-card p-6">
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="text-lg font-bold text-gray-800 flex items-center">
@@ -490,10 +533,15 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                       <div className="flex gap-2">
                         <button
                           onClick={() => setCommentDialog({ isOpen: true, item })}
-                          className="p-2 text-gray-500 hover:text-christmas-gold transition-colors rounded-lg hover:bg-gray-50"
+                          className="p-2 text-gray-500 hover:text-christmas-gold transition-colors rounded-lg hover:bg-gray-50 relative"
                           title="View comments on your item"
                         >
                           <MessageCircle size={18} />
+                          {commentCounts[item.id] > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-christmas-red text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                              {commentCounts[item.id]}
+                            </span>
+                          )}
                         </button>
                         <button
                           onClick={() =>
@@ -602,6 +650,15 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
         onClose={() => setCommentDialog({ isOpen: false, item: null })}
         item={commentDialog.item}
         currentUser={currentUser}
+        onCommentAdded={() => {
+          // Refresh comment counts when a comment is added
+          if (commentDialog.item) {
+            setCommentCounts(prev => ({
+              ...prev,
+              [commentDialog.item!.id]: (prev[commentDialog.item!.id] || 0) + 1
+            }));
+          }
+        }}
       />
 
       {/* Domain Cost Note */}

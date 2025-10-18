@@ -30,10 +30,11 @@ export default function AuthForm({ onLogin }: AuthFormProps) {
     setLoading(true);
     
     try {
-      // Store user session
-      localStorage.setItem('currentUser', name.trim());
+      // Store user session with normalized case
+      const normalizedName = name.trim().toLowerCase();
+      localStorage.setItem('currentUser', normalizedName);
       toast.success(getRandomMessage('success'));
-      onLogin(name.trim());
+      onLogin(normalizedName);
     } catch (error) {
       toast.error(getRandomMessage('error'));
     } finally {

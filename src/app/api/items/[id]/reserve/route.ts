@@ -10,11 +10,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: 'Gifter name is required' }, { status: 400 });
     }
 
-    // Get gifter ID
+    const normalizedGifterName = gifter_name.trim().toLowerCase();
+
+    // Get gifter ID (case-insensitive)
     const { data: gifter, error: gifterError } = await supabase
       .from('users')
       .select('id')
-      .eq('name', gifter_name.trim())
+      .ilike('name', normalizedGifterName)
       .single();
 
     if (gifterError || !gifter) {

@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Item name and author name are required' }, { status: 400 });
     }
 
+    const normalizedAuthorName = author_name.trim().toLowerCase();
+
     // Validate field lengths to prevent database errors
     if (item_name.trim().length > 255) {
       return NextResponse.json({ error: 'Item name is too long (max 255 characters)' }, { status: 400 });
@@ -45,11 +47,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Image URL is too long (max 500 characters)' }, { status: 400 });
     }
 
-    // Get author ID
+    // Get author ID (case-insensitive)
     const { data: author, error: authorError } = await supabase
       .from('users')
       .select('id')
-      .eq('name', author_name.trim())
+      .ilike('name', normalizedAuthorName)
       .single();
 
     if (authorError || !author) {

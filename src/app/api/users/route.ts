@@ -9,11 +9,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
-    // Check if user exists
+    const normalizedName = name.trim().toLowerCase();
+
+    // Check if user exists (case-insensitive)
     const { data: existingUser, error: checkError } = await supabase
       .from('users')
       .select('*')
-      .eq('name', name.trim())
+      .ilike('name', normalizedName)
       .single();
 
     if (checkError && checkError.code !== 'PGRST116') {
@@ -24,10 +26,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ user: existingUser });
     }
 
-    // Create new user
+    // Create new user with normalized name
     const { data: newUser, error: createError } = await supabase
       .from('users')
-      .insert([{ name: name.trim() }])
+      .insert([{ name: normalizedName }])
       .select()
       .single();
 
