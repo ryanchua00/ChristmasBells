@@ -31,6 +31,10 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     isOpen: boolean;
     item: Item | null;
   }>({ isOpen: false, item: null });
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    item: Item | null;
+  }>({ isOpen: false, item: null });
   const [commentCounts, setCommentCounts] = useState<Record<number, number>>({});
 
   useEffect(() => {
@@ -161,14 +165,6 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
   };
 
   const handleDeleteItem = async (itemId: number) => {
-    if (
-      !confirm(
-        "🎄 Are you sure you want to remove this gift from your wishlist?"
-      )
-    ) {
-      return;
-    }
-
     try {
       const response = await fetch(`/api/items/${itemId}`, {
         method: "DELETE",
@@ -497,6 +493,45 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
               </button>
             </div>
 
+            {/* Progress Bar */}
+            <div className="mb-6 p-4 bg-gradient-to-r from-christmas-red/10 to-christmas-green/10 rounded-lg border border-christmas-gold/30">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  🎯 Wishlist Progress
+                </span>
+                <span className="text-sm text-gray-600">
+                  {getCurrentUserItems().length}/4 gifts
+                </span>
+              </div>
+              
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-2 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-christmas-red to-christmas-green transition-all duration-500 ease-out rounded-full relative"
+                  style={{ width: `${Math.min((getCurrentUserItems().length / 4) * 100, 100)}%` }}
+                >
+                  {getCurrentUserItems().length >= 4 && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-christmas-gold/30 to-christmas-gold/10 animate-pulse"></div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="text-xs text-gray-600 text-center">
+                {getCurrentUserItems().length === 0 && (
+                  <span>🎁 Start building your Christmas wishlist!</span>
+                )}
+                {getCurrentUserItems().length > 0 && getCurrentUserItems().length < 4 && (
+                  <span>
+                    ✨ Add {4 - getCurrentUserItems().length} more gift{4 - getCurrentUserItems().length !== 1 ? 's' : ''} to complete your wishlist!
+                  </span>
+                )}
+                {getCurrentUserItems().length >= 4 && (
+                  <span className="text-christmas-green font-medium">
+                    🎉 Perfect! Your wishlist is complete!
+                  </span>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-4 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-320px)] pr-2 py-2 christmas-scroll">
               {getCurrentUserItems().length === 0 ? (
                 <div className="flex flex-col justify-center text-center py-12 ">
@@ -556,8 +591,9 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                           <Edit size={18} />
                         </button>
                         <button
-                          onClick={() => handleDeleteItem(item.id)}
+                          onClick={() => setDeleteDialog({ isOpen: true, item })}
                           className="p-2 text-gray-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                          title="Delete item"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -660,6 +696,70 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
           }
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      {deleteDialog.isOpen && deleteDialog.item && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-red-500 to-red-600 p-6 text-white">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Delete Gift</h3>
+                  <p className="text-red-100 text-sm">This action cannot be undone</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="mb-6">
+                <p className="text-gray-700 mb-4">
+                  Are you sure you want to delete this gift from your wishlist?
+                </p>
+                <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-christmas-red">
+                  <div className="flex items-center">
+                    <Gift className="w-5 h-5 mr-2 text-christmas-red" />
+                    <span className="font-medium text-gray-900">
+                      {deleteDialog.item.item_name}
+                    </span>
+                  </div>
+                  {deleteDialog.item.price_range && (
+                    <p className="text-sm text-gray-600 mt-1 ml-7">
+                      {deleteDialog.item.price_range}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteDialog({ isOpen: false, item: null })}
+                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (deleteDialog.item) {
+                      handleDeleteItem(deleteDialog.item.id);
+                      setDeleteDialog({ isOpen: false, item: null });
+                    }
+                  }}
+                  className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Gift
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Domain Cost Note */}
       <div className="fixed bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-christmas-gold/30 p-3 text-xs text-gray-600 max-w-xs">
