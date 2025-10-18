@@ -176,81 +176,84 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                 Welcome back, <strong>{currentUser}</strong>! 🎅
               </p>
             </div>
-            <div className="flex gap-3">
+            <button
+              onClick={onLogout}
+              className="px-6 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center font-semibold"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </button>
+          </div>
+        </div>
+
+        {/* Horizontal Split Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-200px)]">
+          {/* Left Side - My Wishlist */}
+          <div className="christmas-section">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-bold text-christmas-red flex items-center">
+                🎄 My Wishlist
+                <span className="ml-3 text-lg font-normal text-gray-600">
+                  ({(groupedItems[currentUser] || []).length} items)
+                </span>
+              </h2>
               <button
                 onClick={() => setItemDialog({ isOpen: true, title: 'Add New Gift' })}
-                className="christmas-button flex items-center"
+                className="christmas-button flex items-center text-sm"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Gift
               </button>
-              <button
-                onClick={onLogout}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </button>
             </div>
-          </div>
-        </div>
-
-        {/* Items by User */}
-        <div className="space-y-8">
-          {Object.entries(groupedItems).map(([authorName, userItems]) => (
-            <div key={authorName} className="christmas-card p-6">
-              <h2 className="text-2xl font-bold text-christmas-green mb-4 flex items-center">
-                <User className="w-6 h-6 mr-2" />
-                {authorName}'s Wishlist
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  ({userItems.length} {userItems.length === 1 ? 'item' : 'items'})
-                </span>
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {userItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                      item.gifter_id
-                        ? 'bg-gray-100 border-gray-300 opacity-75'
-                        : 'bg-white border-christmas-gold/30 hover:border-christmas-gold/60 hover:shadow-lg'
-                    }`}
+            
+            <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-320px)] pr-2">
+              {(groupedItems[currentUser] || []).length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🎁</div>
+                  <h3 className="text-xl font-bold text-gray-700 mb-2">Your wishlist is empty!</h3>
+                  <p className="text-gray-500 mb-6">Add some gifts to get started with the Christmas magic.</p>
+                  <button
+                    onClick={() => setItemDialog({ isOpen: true, title: 'Add Your First Gift' })}
+                    className="christmas-button"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-semibold text-gray-800 flex items-center">
-                        <Gift className="w-4 h-4 mr-2 text-christmas-red" />
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Your First Gift
+                  </button>
+                </div>
+              ) : (
+                (groupedItems[currentUser] || []).map((item) => (
+                  <div key={item.id} className="christmas-gift-card p-5">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                        <Gift className="w-5 h-5 mr-2 text-christmas-red" />
                         {item.item_name}
                       </h3>
-                      
-                      {item.author?.name === currentUser && (
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => setItemDialog({
-                              isOpen: true,
-                              item,
-                              title: 'Edit Gift'
-                            })}
-                            className="p-1 text-gray-500 hover:text-blue-600 transition-colors"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteItem(item.id)}
-                            className="p-1 text-gray-500 hover:text-red-600 transition-colors"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setItemDialog({
+                            isOpen: true,
+                            item,
+                            title: 'Edit Gift'
+                          })}
+                          className="p-2 text-gray-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="p-2 text-gray-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
 
                     {item.image_url && (
-                      <div className="mb-3">
+                      <div className="mb-4">
                         <img
                           src={item.image_url}
                           alt={item.item_name}
-                          className="w-full h-32 object-cover rounded-lg"
+                          className="w-full h-40 object-cover rounded-xl shadow-md"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
                           }}
@@ -258,64 +261,153 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                       </div>
                     )}
 
-                    {item.price_range && (
-                      <p className="text-sm text-gray-600 mb-2 flex items-center">
-                        <DollarSign className="w-3 h-3 mr-1" />
-                        {item.price_range}
-                      </p>
-                    )}
-
-                    {item.link && (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline mb-3 flex items-center"
-                      >
-                        <ExternalLink className="w-3 h-3 mr-1" />
-                        View Item
-                      </a>
-                    )}
-
-                    {item.gifter_id ? (
-                      <div className="bg-christmas-green/20 p-2 rounded text-center">
-                        <p className="text-sm font-medium text-christmas-green">
-                          🎅 Reserved by {item.gifter?.name === currentUser ? 'You' : 'Someone'}
+                    <div className="space-y-2">
+                      {item.price_range && (
+                        <p className="text-sm text-gray-700 flex items-center bg-christmas-gold/10 px-3 py-2 rounded-lg">
+                          <DollarSign className="w-4 h-4 mr-2 text-christmas-gold" />
+                          <strong>Price:</strong> <span className="ml-1">{item.price_range}</span>
                         </p>
-                      </div>
-                    ) : item.author?.name !== currentUser ? (
-                      <button
-                        onClick={() => setReserveDialog({ isOpen: true, item })}
-                        className="christmas-button-secondary w-full text-sm"
-                      >
-                        🎁 I'll Get This!
-                      </button>
-                    ) : null}
+                      )}
+
+                      {item.link && (
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors"
+                        >
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          View Item Online
+                        </a>
+                      )}
+
+                      {item.gifter_id && (
+                        <div className="bg-gradient-to-r from-christmas-green/20 to-green-200/30 p-3 rounded-lg border border-christmas-green/30">
+                          <p className="text-sm font-bold text-christmas-green flex items-center">
+                            🎅 <span className="ml-2">Reserved by {item.gifter?.name === currentUser ? 'You' : item.gifter?.name}!</span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Right Side - Others' Gifts */}
+          <div className="christmas-section">
+            <h2 className="text-3xl font-bold text-christmas-green mb-6 flex items-center">
+              🎁 Family Gifts
+              <span className="ml-3 text-lg font-normal text-gray-600">
+                ({Object.entries(groupedItems).filter(([name]) => name !== currentUser).reduce((acc, [, items]) => acc + items.length, 0)} items)
+              </span>
+            </h2>
+            
+            <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-280px)] pr-2">
+              {Object.entries(groupedItems)
+                .filter(([authorName]) => authorName !== currentUser)
+                .map(([authorName, userItems]) => (
+                  <div key={authorName} className="space-y-4">
+                    <h3 className="text-xl font-bold text-gray-800 flex items-center sticky top-0 bg-white/90 backdrop-blur-sm py-2 rounded-lg px-3 border border-christmas-gold/20">
+                      <User className="w-5 h-5 mr-2 text-christmas-green" />
+                      {authorName}'s Wishlist ({userItems.length})
+                    </h3>
+                    
+                    <div className="grid gap-4">
+                      {userItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className={`p-4 rounded-xl transition-all duration-300 ${
+                            item.gifter_id
+                              ? 'christmas-gift-card-reserved'
+                              : 'christmas-gift-card cursor-pointer'
+                          }`}
+                          onClick={() => !item.gifter_id && setReserveDialog({ isOpen: true, item })}
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <h4 className="font-bold text-gray-800 flex items-center">
+                              <Gift className="w-4 h-4 mr-2 text-christmas-red" />
+                              {item.item_name}
+                            </h4>
+                            {item.gifter_id && (
+                              <span className="text-xs bg-gray-500 text-white px-2 py-1 rounded-full">
+                                Reserved
+                              </span>
+                            )}
+                          </div>
+
+                          {item.image_url && (
+                            <div className="mb-3">
+                              <img
+                                src={item.image_url}
+                                alt={item.item_name}
+                                className="w-full h-32 object-cover rounded-lg shadow-sm"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          <div className="space-y-2">
+                            {item.price_range && (
+                              <p className="text-xs text-gray-600 flex items-center">
+                                <DollarSign className="w-3 h-3 mr-1" />
+                                {item.price_range}
+                              </p>
+                            )}
+
+                            {item.link && (
+                              <a
+                                href={item.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:underline flex items-center"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ExternalLink className="w-3 h-3 mr-1" />
+                                View Item
+                              </a>
+                            )}
+
+                            {item.gifter_id ? (
+                              <div className="bg-gray-200 p-2 rounded text-center">
+                                <p className="text-xs font-medium text-gray-600">
+                                  🎅 Reserved by {item.gifter?.name === currentUser ? 'You' : 'Someone'}
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="text-center pt-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setReserveDialog({ isOpen: true, item });
+                                  }}
+                                  className="christmas-button-secondary w-full text-xs py-2"
+                                >
+                                  🎁 I'll Get This!
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
-              </div>
+              
+              {Object.entries(groupedItems).filter(([name]) => name !== currentUser).length === 0 && (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🎄</div>
+                  <h3 className="text-xl font-bold text-gray-700 mb-2">No other wishlists yet!</h3>
+                  <p className="text-gray-500">Invite your family to add their Christmas wishes.</p>
+                </div>
+              )}
             </div>
-          ))}
+          </div>
         </div>
 
-        {items.length === 0 && (
-          <div className="christmas-card p-12 text-center">
-            <div className="text-6xl mb-4">🎁</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              No gifts yet!
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Start by adding your first Christmas wish to the list.
-            </p>
-            <button
-              onClick={() => setItemDialog({ isOpen: true, title: 'Add Your First Gift' })}
-              className="christmas-button"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First Gift
-            </button>
-          </div>
-        )}
       </div>
 
       <ItemDialog
