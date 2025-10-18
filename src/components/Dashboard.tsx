@@ -453,7 +453,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                 onClick={() =>
                   setItemDialog({ isOpen: true, title: "Add New Gift" })
                 }
-                className="christmas-button flex items-center text-sm sm:text-base min-h-[44px] px-4 py-2"
+                className="christmas-button text-sm sm:text-base min-h-[44px]"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Gift
@@ -462,7 +462,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
 
             <div className="space-y-4 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-320px)] pr-2 py-2 christmas-scroll">
               {(groupedItems[currentUser] || []).length === 0 ? (
-                <div className="text-center py-12">
+                <div className="flex flex-col justify-center text-center py-12 ">
                   <div className="text-6xl mb-4">🎁</div>
                   <h3 className="text-xl font-bold text-gray-700 mb-2">
                     Your wishlist is empty!
@@ -470,18 +470,20 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                   <p className="text-gray-500 mb-6">
                     Add some gifts to get started with the Christmas magic.
                   </p>
-                  <button
-                    onClick={() =>
-                      setItemDialog({
-                        isOpen: true,
-                        title: "Add Your First Gift",
-                      })
-                    }
-                    className="christmas-button"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Your First Gift
-                  </button>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() =>
+                        setItemDialog({
+                          isOpen: true,
+                          title: "Add Your First Gift",
+                        })
+                      }
+                      className="christmas-button w-fit"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Gift
+                    </button>
+                  </div>
                 </div>
               ) : (
                 (groupedItems[currentUser] || []).map((item) => (
