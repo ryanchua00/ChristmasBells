@@ -50,6 +50,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
   const [commentCounts, setCommentCounts] = useState<Record<number, number>>(
     {}
   );
+  const [showDomainNote, setShowDomainNote] = useState(true);
 
   useEffect(() => {
     fetchItems();
@@ -75,6 +76,15 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
       }
     }
   }, [items, currentUser]);
+
+  // Auto-hide domain note after 10 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowDomainNote(false);
+    }, 10000); // 10 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const toggleUserExpanded = (userName: string) => {
     const newExpanded = new Set(expandedUsers);
@@ -830,12 +840,23 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
       )}
 
       {/* Domain Cost Note */}
-      <div className="fixed bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-christmas-gold/30 p-3 text-xs text-gray-600 max-w-xs">
-        <p className="flex items-center">
-          <span className="mr-1">💰</span>
-          PS: Renewing the domain cost me $15 USD
-        </p>
-      </div>
+      {showDomainNote && (
+        <div className="fixed bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-christmas-gold/30 p-3 text-xs text-gray-600 max-w-xs transition-opacity duration-500">
+          <div className="flex items-center justify-between">
+            <p className="flex items-center">
+              <span className="mr-1">💰</span>
+              PS: Renewing the domain cost me $15 USD
+            </p>
+            <button
+              onClick={() => setShowDomainNote(false)}
+              className="ml-2 text-gray-400 hover:text-gray-600 transition-colors"
+              title="Close"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
