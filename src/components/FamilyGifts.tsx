@@ -10,6 +10,7 @@ import {
   ChevronRight,
   MessageCircle,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { Item } from "../types";
 
 interface FamilyGiftsProps {
@@ -35,6 +36,13 @@ export default function FamilyGifts({
   };
 
   const toggleUserExpanded = (userName: string) => {
+    // TODO: Replace allow expansion when ready
+    toast("Only when secret santa is assigned!", {
+      icon: "🎁",
+      duration: 3000,
+    });
+    return;
+
     const newExpanded = new Set(expandedUsers);
     if (newExpanded.has(userName)) {
       newExpanded.delete(userName);
@@ -90,7 +98,6 @@ export default function FamilyGifts({
                   <ChevronRight className="w-5 h-5 text-christmas-gold transition-transform duration-200" />
                 )}
               </button>
-
               {isExpanded && (
                 <div className="grid gap-4 animate-in slide-in-from-top-2 duration-300">
                   {userItems.map((item) => {
@@ -231,8 +238,29 @@ export default function FamilyGifts({
               </span>
             </div>
 
-            {/* Horizontal Scrolling Gift Cards */}
-            <div className="overflow-x-auto pb-2">
+            {/* Hidden Gifts Message */}
+            <div 
+              className="bg-gradient-to-r from-christmas-red/10 to-christmas-green/10 p-4 rounded-lg border border-christmas-gold/30 cursor-pointer hover:bg-christmas-gold/10 transition-colors"
+              onClick={() => {
+                toast("Only when secret santa is assigned!", {
+                  icon: "🎁",
+                  duration: 3000,
+                });
+              }}
+            >
+              <div className="text-center">
+                <div className="text-2xl mb-2">🎁</div>
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  {userItems.length} gifts hidden
+                </p>
+                <p className="text-xs text-gray-500">
+                  Tap to reveal when Secret Santa is assigned
+                </p>
+              </div>
+            </div>
+
+            {/* TODO: Uncomment when Secret Santa is assigned */}
+            {/* <div className="overflow-x-auto pb-2">
               <div className="flex gap-3 w-max">
                 {userItems.map((item) => {
                   const isMyReservation =
@@ -314,7 +342,7 @@ export default function FamilyGifts({
                   );
                 })}
               </div>
-            </div>
+            </div> */}
           </div>
         ))}
       </div>
