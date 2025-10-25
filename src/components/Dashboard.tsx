@@ -563,7 +563,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                   🎯 Wishlist Progress
                 </span>
                 <span className="text-sm text-gray-600">
-                  {getCurrentUserItems().length}/4 gifts
+                  {getCurrentUserItems().length}/10 gifts
                 </span>
               </div>
 
@@ -572,7 +572,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                   className="h-full bg-gradient-to-r from-christmas-red to-christmas-green transition-all duration-500 ease-out rounded-full relative"
                   style={{
                     width: `${Math.min(
-                      (getCurrentUserItems().length / 4) * 100,
+                      (getCurrentUserItems().length / 10) * 100,
                       100
                     )}%`,
                   }}
@@ -592,10 +592,16 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                     <span>
                       ✨ Add {4 - getCurrentUserItems().length} more gift
                       {4 - getCurrentUserItems().length !== 1 ? "s" : ""} to
-                      complete your wishlist!
+                      reach the minimum!
                     </span>
                   )}
-                {getCurrentUserItems().length >= 4 && (
+                {getCurrentUserItems().length >= 4 &&
+                  getCurrentUserItems().length < 10 && (
+                    <span className="text-christmas-green font-medium">
+                      🎉 Minimum reached! Add up to {10 - getCurrentUserItems().length} more for the perfect wishlist!
+                    </span>
+                  )}
+                {getCurrentUserItems().length >= 10 && (
                   <span className="text-christmas-green font-medium">
                     🎉 Perfect! Your wishlist is complete!
                   </span>
