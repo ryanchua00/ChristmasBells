@@ -47,10 +47,19 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     isOpen: boolean;
     item: Item | null;
   }>({ isOpen: false, item: null });
+  const [itemDetailDialog, setItemDetailDialog] = useState<{
+    isOpen: boolean;
+    item: Item | null;
+  }>({ isOpen: false, item: null });
   const [commentCounts, setCommentCounts] = useState<Record<number, number>>(
     {}
   );
   const [showDomainNote, setShowDomainNote] = useState(true);
+
+  // Function to check if device is mobile
+  const isMobile = () => {
+    return window.innerWidth < 640; // sm breakpoint in Tailwind
+  };
 
   useEffect(() => {
     fetchItems();
@@ -212,6 +221,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
   };
 
   // RESERVATION FUNCTIONALITY - COMMENTED OUT FOR NOW
+
   // const handleReserveItem = async (item: Item) => {
   //   try {
   //     const response = await fetch(`/api/items/${item.id}/reserve`, {
@@ -363,7 +373,8 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
               </span>
             </div>
 
-            <div className="space-y-4 sm:space-y-6 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-280px)] pr-2 christmas-scroll">
+            {/* Desktop Layout - Hidden on Mobile */}
+            <div className="hidden sm:block space-y-4 sm:space-y-6 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-280px)] pr-2 christmas-scroll">
               {Object.entries(groupedItems)
                 .filter(
                   ([authorName]) =>
@@ -518,21 +529,139 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                     </div>
                   );
                 })}
-
-              {Object.entries(groupedItems).filter(
-                ([name]) => name.toLowerCase() !== currentUser.toLowerCase()
-              ).length === 0 && (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🎄</div>
-                  <h3 className="text-xl font-bold text-gray-700 mb-2">
-                    No other wishlists yet!
-                  </h3>
-                  <p className="text-gray-500">
-                    Invite your family to add their Christmas wishes.
-                  </p>
-                </div>
-              )}
             </div>
+
+            {/* Mobile Layout - Horizontal Scrolling */}
+            <div className="sm:hidden space-y-4 pr-2 christmas-scroll">
+              {Object.entries(groupedItems)
+                .filter(
+                  ([authorName]) =>
+                    authorName.toLowerCase() !== currentUser.toLowerCase()
+                )
+                .map(([authorName, userItems]) => (
+                  <div key={authorName} className="space-y-3">
+                    {/* User Header */}
+                    <div className="flex items-center justify-between bg-white backdrop-blur-sm py-3 px-4 rounded-lg border border-christmas-gold/20 sticky top-0 z-10">
+                      <div className="flex items-center">
+                        <User className="w-4 h-4 mr-2 text-christmas-green" />
+                        <span className="text-sm font-bold text-gray-800">
+                          {authorName}'s Wishlist
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+                        {userItems.length}
+                      </span>
+                    </div>
+
+                    {/* Horizontal Scrolling Gift Cards */}
+                    <div className="overflow-x-auto pb-2">
+                      <div className="flex gap-3 w-max">
+                        {userItems.map((item) => {
+                          const isMyReservation =
+                            item.gifter_id &&
+                            item.gifter?.name?.toLowerCase() ===
+                              currentUser.toLowerCase();
+                          const isReserved = item.gifter_id && !isMyReservation;
+
+                          return (
+                            <div
+                              key={item.id}
+                              className="christmas-gift-card p-4 w-64 max-w-64 flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow"
+                              onClick={() => {
+                                if (isMobile()) {
+                                  setItemDetailDialog({ isOpen: true, item });
+                                }
+                              }}
+                            >
+                              <div className="flex justify-between items-start mb-3 min-w-0">
+                                <h4 className="font-bold text-gray-900 flex items-center text-sm leading-tight min-w-0 flex-1 mr-2">
+                                  <Gift className="w-4 h-4 mr-1 text-christmas-red flex-shrink-0" />
+                                  <span className="truncate">
+                                    {item.item_name}
+                                  </span>
+                                </h4>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCommentDialog({
+                                      isOpen: true,
+                                      item,
+                                    });
+                                  }}
+                                  className="p-1.5 text-gray-500 hover:text-christmas-gold transition-colors rounded-lg hover:bg-gray-50 relative flex-shrink-0"
+                                  title="View comments"
+                                >
+                                  <MessageCircle size={14} />
+                                  {commentCounts[item.id] > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-christmas-red text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium text-[10px]">
+                                      {commentCounts[item.id]}
+                                    </span>
+                                  )}
+                                </button>
+                              </div>
+
+                              {item.image_url && (
+                                <div className="mb-3">
+                                  <img
+                                    src={item.image_url}
+                                    alt={item.item_name}
+                                    className="w-full h-32 object-cover rounded-lg shadow-sm"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = "none";
+                                    }}
+                                  />
+                                </div>
+                              )}
+
+                              <div className="space-y-2">
+                                {item.price_range && (
+                                  <p className="text-xs text-gray-700 flex items-center bg-gray-50 px-2 py-1.5 rounded-lg">
+                                    <DollarSign className="w-3 h-3 mr-1 text-christmas-gold" />
+                                    <span className="font-medium">Price:</span>
+                                    <span className="ml-1 truncate">
+                                      {item.price_range}
+                                    </span>
+                                  </p>
+                                )}
+
+                                {item.link && (
+                                  <a
+                                    href={item.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center bg-blue-50 px-2 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <ExternalLink className="w-3 h-3 mr-1" />
+                                    <span className="truncate">
+                                      View Online
+                                    </span>
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* Empty State - Shown on both mobile and desktop */}
+            {Object.entries(groupedItems).filter(
+              ([name]) => name.toLowerCase() !== currentUser.toLowerCase()
+            ).length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🎄</div>
+                <h3 className="text-xl font-bold text-gray-700 mb-2">
+                  No other wishlists yet!
+                </h3>
+                <p className="text-gray-500">
+                  Invite your family to add their Christmas wishes.
+                </p>
+              </div>
+            )}
           </div>
           {/* My Wishlist Section */}
           <div className="christmas-section order-1 lg:order-2">
@@ -598,7 +727,9 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                 {getCurrentUserItems().length >= 4 &&
                   getCurrentUserItems().length < 10 && (
                     <span className="text-christmas-green font-medium">
-                      🎉 Minimum reached! Add up to {10 - getCurrentUserItems().length} more for the perfect wishlist!
+                      🎉 Minimum reached! Add up to{" "}
+                      {10 - getCurrentUserItems().length} more for the perfect
+                      wishlist!
                     </span>
                   )}
                 {getCurrentUserItems().length >= 10 && (
@@ -609,7 +740,8 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
               </div>
             </div>
 
-            <div className="space-y-4 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-320px)] pr-2 py-2 christmas-scroll">
+            {/* Desktop Layout for My Wishlist */}
+            <div className="hidden sm:block space-y-4 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-320px)] pr-2 py-2 christmas-scroll">
               {getCurrentUserItems().length === 0 ? (
                 <div className="flex flex-col justify-center text-center py-12 ">
                   <div className="text-6xl mb-4">🎁</div>
@@ -734,6 +866,146 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                 ))
               )}
             </div>
+
+            {/* Mobile Layout for My Wishlist - Horizontal Scrolling */}
+            <div className="sm:hidden">
+              {getCurrentUserItems().length === 0 ? (
+                <div className="flex flex-col justify-center text-center py-12">
+                  <div className="text-6xl mb-4">🎁</div>
+                  <h3 className="text-xl font-bold text-gray-700 mb-2">
+                    Your wishlist is empty!
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Add some gifts to get started with the Christmas magic.
+                  </p>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() =>
+                        setItemDialog({
+                          isOpen: true,
+                          title: "Add Your First Gift",
+                        })
+                      }
+                      className="christmas-button w-fit"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Gift
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto pb-2">
+                  <div className="flex gap-3 w-max">
+                    {getCurrentUserItems().map((item) => (
+                      <div
+                        key={item.id}
+                        className="christmas-gift-card p-4 w-64 max-w-64 flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => {
+                          if (isMobile()) {
+                            setItemDetailDialog({ isOpen: true, item });
+                          }
+                        }}
+                      >
+                        <div className="flex justify-between items-start mb-3 min-w-0">
+                          <h3 className="font-bold text-gray-800 flex items-center text-sm leading-tight min-w-0 flex-1 mr-2">
+                            <Gift className="w-4 h-4 mr-1 text-christmas-red flex-shrink-0" />
+                            <span className="truncate">{item.item_name}</span>
+                          </h3>
+                          <div className="flex gap-1 flex-shrink-0">
+                            <button
+                              onClick={() =>
+                                setCommentDialog({ isOpen: true, item })
+                              }
+                              className="p-1.5 text-gray-500 hover:text-christmas-gold transition-colors rounded-lg hover:bg-gray-50 relative flex-shrink-0"
+                              title="View comments"
+                            >
+                              <MessageCircle size={14} />
+                              {commentCounts[item.id] > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-christmas-red text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium text-[10px]">
+                                  {commentCounts[item.id]}
+                                </span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() =>
+                                setItemDialog({
+                                  isOpen: true,
+                                  item,
+                                  title: "Edit Gift",
+                                })
+                              }
+                              className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50 flex-shrink-0"
+                            >
+                              <Edit size={14} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                setDeleteDialog({ isOpen: true, item })
+                              }
+                              className="p-1.5 text-gray-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50 flex-shrink-0"
+                              title="Delete item"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {item.image_url && (
+                          <div className="mb-3">
+                            <img
+                              src={item.image_url}
+                              alt={item.item_name}
+                              className="w-full h-32 object-cover rounded-lg shadow-sm"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                          {item.price_range && (
+                            <p className="text-xs text-gray-700 flex items-center bg-christmas-gold/10 px-2 py-1.5 rounded-lg">
+                              <DollarSign className="w-3 h-3 mr-1 text-christmas-gold" />
+                              <span className="font-medium">Price:</span>
+                              <span className="ml-1 truncate">
+                                {item.price_range}
+                              </span>
+                            </p>
+                          )}
+
+                          {item.link && (
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:text-blue-800 flex items-center bg-blue-50 px-2 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+                            >
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              <span className="truncate">View Online</span>
+                            </a>
+                          )}
+
+                          {item.gifter_id && (
+                            <div className="bg-gradient-to-r from-christmas-green/20 to-green-200/30 p-2 rounded-lg border border-christmas-green/30">
+                              <p className="text-xs font-bold text-christmas-green flex items-center">
+                                🎅{" "}
+                                <span className="ml-1 truncate">
+                                  Reserved for you! 🎁
+                                </span>
+                              </p>
+                              <p className="text-[10px] text-christmas-green/80 mt-1">
+                                It's a surprise!
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -839,6 +1111,156 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete Gift
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Item Detail Dialog */}
+      {itemDetailDialog.isOpen && itemDetailDialog.item && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-christmas-red to-christmas-green p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                    <Gift className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Gift Details</h3>
+                    <p className="text-white/80 text-sm">
+                      {itemDetailDialog.item.author?.name}'s wishlist
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setItemDetailDialog({ isOpen: false, item: null })}
+                  className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="mb-6">
+                <h4 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                  <Gift className="w-6 h-6 mr-2 text-christmas-red" />
+                  {itemDetailDialog.item.item_name}
+                </h4>
+
+                {itemDetailDialog.item.image_url && (
+                  <div className="mb-4">
+                    <img
+                      src={itemDetailDialog.item.image_url}
+                      alt={itemDetailDialog.item.item_name}
+                      className="w-full h-64 object-cover rounded-lg shadow-md"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {itemDetailDialog.item.price_range && (
+                    <div className="bg-christmas-gold/10 p-4 rounded-lg border-l-4 border-christmas-gold">
+                      <div className="flex items-center">
+                        <DollarSign className="w-5 h-5 mr-2 text-christmas-gold" />
+                        <span className="font-medium text-gray-900">Price Range</span>
+                      </div>
+                      <p className="text-gray-700 mt-1 ml-7">
+                        {itemDetailDialog.item.price_range}
+                      </p>
+                    </div>
+                  )}
+
+                  {itemDetailDialog.item.link && (
+                    <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+                      <div className="flex items-center mb-2">
+                        <ExternalLink className="w-5 h-5 mr-2 text-blue-600" />
+                        <span className="font-medium text-gray-900">Product Link</span>
+                      </div>
+                      <a
+                        href={itemDetailDialog.item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline break-all"
+                      >
+                        {itemDetailDialog.item.link}
+                      </a>
+                    </div>
+                  )}
+
+                  {itemDetailDialog.item.gifter_id && (
+                    <div className="bg-gradient-to-r from-christmas-green/20 to-green-200/30 p-4 rounded-lg border-l-4 border-christmas-green">
+                      <div className="flex items-center">
+                        <span className="text-2xl mr-2">🎅</span>
+                        <div>
+                          <p className="font-bold text-christmas-green">
+                            This gift has been reserved!
+                          </p>
+                          <p className="text-sm text-christmas-green/80 mt-1">
+                            {itemDetailDialog.item.author?.name?.toLowerCase() === currentUser.toLowerCase() 
+                              ? "Someone will surprise you with this gift on Christmas Day!"
+                              : "This gift is no longer available for reservation."
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-400">
+                    <div className="flex items-center mb-2">
+                      <MessageCircle className="w-5 h-5 mr-2 text-gray-600" />
+                      <span className="font-medium text-gray-900">Comments</span>
+                      {commentCounts[itemDetailDialog.item.id] > 0 && (
+                        <span className="ml-2 bg-christmas-red text-white text-xs rounded-full px-2 py-1">
+                          {commentCounts[itemDetailDialog.item.id]}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setCommentDialog({ isOpen: true, item: itemDetailDialog.item });
+                        setItemDetailDialog({ isOpen: false, item: null });
+                      }}
+                      className="text-sm text-gray-600 hover:text-christmas-gold transition-colors"
+                    >
+                      Click to view and add comments
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setItemDetailDialog({ isOpen: false, item: null })}
+                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                >
+                  Close
+                </button>
+                {itemDetailDialog.item.author?.name?.toLowerCase() === currentUser.toLowerCase() && (
+                  <button
+                    onClick={() => {
+                      setItemDialog({
+                        isOpen: true,
+                        item: itemDetailDialog.item || undefined,
+                        title: "Edit Gift",
+                      });
+                      setItemDetailDialog({ isOpen: false, item: null });
+                    }}
+                    className="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Gift
+                  </button>
+                )}
               </div>
             </div>
           </div>
