@@ -375,8 +375,12 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
             currentUserItems={getCurrentUserItems()}
             currentUser={currentUser}
             commentCounts={commentCounts}
-            onAddGift={() => setItemDialog({ isOpen: true, title: "Add New Gift" })}
-            onEditGift={(item) => setItemDialog({ isOpen: true, item, title: "Edit Gift" })}
+            onAddGift={() =>
+              setItemDialog({ isOpen: true, title: "Add New Gift" })
+            }
+            onEditGift={(item) =>
+              setItemDialog({ isOpen: true, item, title: "Edit Gift" })
+            }
             onDeleteGift={(item) => setDeleteDialog({ isOpen: true, item })}
             onCommentClick={(item) => setCommentDialog({ isOpen: true, item })}
             onItemDetailClick={(item) =>

@@ -72,10 +72,7 @@ export default function MyWishlist({
           <div
             className="h-full bg-gradient-to-r from-christmas-red to-christmas-green transition-all duration-500 ease-out rounded-full relative"
             style={{
-              width: `${Math.min(
-                (currentUserItems.length / 10) * 100,
-                100
-              )}%`,
+              width: `${Math.min((currentUserItems.length / 10) * 100, 100)}%`,
             }}
           >
             {currentUserItems.length >= 4 && (
@@ -97,8 +94,8 @@ export default function MyWishlist({
           )}
           {currentUserItems.length >= 4 && currentUserItems.length < 10 && (
             <span className="text-christmas-green font-medium">
-              🎉 Minimum reached! Add up to{" "}
-              {10 - currentUserItems.length} more for the perfect wishlist!
+              🎉 Minimum reached! Add up to {10 - currentUserItems.length} more
+              for the perfect wishlist!
             </span>
           )}
           {currentUserItems.length >= 10 && (
@@ -121,10 +118,7 @@ export default function MyWishlist({
               Add some gifts to get started with the Christmas magic.
             </p>
             <div className="flex justify-center">
-              <button
-                onClick={onAddGift}
-                className="christmas-button w-fit"
-              >
+              <button onClick={onAddGift} className="christmas-button w-fit">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Your First Gift
               </button>
@@ -232,10 +226,7 @@ export default function MyWishlist({
               Add some gifts to get started with the Christmas magic.
             </p>
             <div className="flex justify-center">
-              <button
-                onClick={onAddGift}
-                className="christmas-button w-fit"
-              >
+              <button onClick={onAddGift} className="christmas-button w-fit">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Your First Gift
               </button>
@@ -248,11 +239,6 @@ export default function MyWishlist({
                 <div
                   key={item.id}
                   className="christmas-gift-card p-4 w-64 max-w-64 flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => {
-                    if (isMobile()) {
-                      onItemDetailClick(item);
-                    }
-                  }}
                 >
                   <div className="flex justify-between items-start mb-3 min-w-0">
                     <h3 className="font-bold text-gray-800 flex items-center text-sm leading-tight min-w-0 flex-1 mr-2">
@@ -288,55 +274,63 @@ export default function MyWishlist({
                     </div>
                   </div>
 
-                  {item.image_url && (
-                    <div className="mb-3">
-                      <img
-                        src={item.image_url}
-                        alt={item.item_name}
-                        className="w-full h-32 object-cover rounded-lg shadow-sm"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    {item.price_range && (
-                      <p className="text-xs text-gray-700 flex items-center bg-christmas-gold/10 px-2 py-1.5 rounded-lg">
-                        <DollarSign className="w-3 h-3 mr-1 text-christmas-gold" />
-                        <span className="font-medium">Price:</span>
-                        <span className="ml-1 truncate">
-                          {item.price_range}
-                        </span>
-                      </p>
-                    )}
-
-                    {item.link && (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center bg-blue-50 px-2 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
-                      >
-                        <ExternalLink className="w-3 h-3 mr-1" />
-                        <span className="truncate">View Online</span>
-                      </a>
-                    )}
-
-                    {item.gifter_id && (
-                      <div className="bg-gradient-to-r from-christmas-green/20 to-green-200/30 p-2 rounded-lg border border-christmas-green/30">
-                        <p className="text-xs font-bold text-christmas-green flex items-center">
-                          🎅{" "}
-                          <span className="ml-1 truncate">
-                            Reserved for you! 🎁
-                          </span>
-                        </p>
-                        <p className="text-[10px] text-christmas-green/80 mt-1">
-                          It's a surprise!
-                        </p>
+                  <div
+                    onClick={() => {
+                      if (isMobile()) {
+                        onItemDetailClick(item);
+                      }
+                    }}
+                  >
+                    {item.image_url && (
+                      <div className="mb-3">
+                        <img
+                          src={item.image_url}
+                          alt={item.item_name}
+                          className="w-full h-32 object-cover rounded-lg shadow-sm"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
                       </div>
                     )}
+
+                    <div className="space-y-2">
+                      {item.price_range && (
+                        <p className="text-xs text-gray-700 flex items-center bg-christmas-gold/10 px-2 py-1.5 rounded-lg">
+                          <DollarSign className="w-3 h-3 mr-1 text-christmas-gold" />
+                          <span className="font-medium">Price:</span>
+                          <span className="ml-1 truncate">
+                            {item.price_range}
+                          </span>
+                        </p>
+                      )}
+
+                      {item.link && (
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800 flex items-center bg-blue-50 px-2 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          <span className="truncate">View Online</span>
+                        </a>
+                      )}
+
+                      {item.gifter_id && (
+                        <div className="bg-gradient-to-r from-christmas-green/20 to-green-200/30 p-2 rounded-lg border border-christmas-green/30">
+                          <p className="text-xs font-bold text-christmas-green flex items-center">
+                            🎅{" "}
+                            <span className="ml-1 truncate">
+                              Reserved for you! 🎁
+                            </span>
+                          </p>
+                          <p className="text-[10px] text-christmas-green/80 mt-1">
+                            It's a surprise!
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
