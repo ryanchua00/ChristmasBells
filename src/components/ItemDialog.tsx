@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { X, Gift, Link, DollarSign, Image, Upload, Trash2 } from 'lucide-react';
-import { CreateItemData, UpdateItemData, Item } from '../types';
+import { useState, useEffect, useRef } from "react";
+import { X, Gift, Link, DollarSign, Image, Upload, Trash2 } from "lucide-react";
+import { CreateItemData, UpdateItemData, Item } from "../types";
 
 interface ItemDialogProps {
   isOpen: boolean;
@@ -12,36 +12,49 @@ interface ItemDialogProps {
   title: string;
 }
 
-export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: ItemDialogProps) {
+export default function ItemDialog({
+  isOpen,
+  onClose,
+  onSubmit,
+  item,
+  title,
+}: ItemDialogProps) {
   const [formData, setFormData] = useState({
-    item_name: '',
-    link: '',
-    price_range: '',
-    image_url: '',
+    item_name: "",
+    link: "",
+    price_range: "",
+    image_url: "",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [previewUrl, setPreviewUrl] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (item) {
+      let itemURL = "";
+      if (
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        !item.image_url?.includes(process.env.NEXT_PUBLIC_SUPABASE_URL)
+      ) {
+        itemURL = item.image_url || "";
+      }
       setFormData({
         item_name: item.item_name,
-        link: item.link || '',
-        price_range: item.price_range || '',
-        image_url: item.image_url || '',
+        link: item.link || "",
+        price_range: item.price_range || "",
+        image_url: itemURL,
       });
-      setPreviewUrl(item.image_url || '');
+      setPreviewUrl(item.image_url || "");
     } else {
       setFormData({
-        item_name: '',
-        link: '',
-        price_range: '',
-        image_url: '',
+        item_name: "",
+        link: "",
+        price_range: "",
+        image_url: "",
       });
-      setPreviewUrl('');
+      setPreviewUrl("");
     }
     setSelectedFile(null);
     setUploading(false);
@@ -50,28 +63,28 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
   // Validate and process file
   const processFile = (file: File) => {
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file");
       return false;
     }
-    
+
     // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+      alert("Image size must be less than 5MB");
       return false;
     }
-    
+
     setSelectedFile(file);
-    
+
     // Create preview URL
     const reader = new FileReader();
     reader.onload = (e) => {
       setPreviewUrl(e.target?.result as string);
     };
     reader.readAsDataURL(file);
-    
+
     // Clear image URL when file is selected
-    setFormData({ ...formData, image_url: '' });
+    setFormData({ ...formData, image_url: "" });
     return true;
   };
 
@@ -100,14 +113,14 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
-    
+
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
-    
+    const imageFile = files.find((file) => file.type.startsWith("image/"));
+
     if (imageFile) {
       processFile(imageFile);
     } else if (files.length > 0) {
-      alert('Please drop an image file');
+      alert("Please drop an image file");
     }
   };
 
@@ -116,12 +129,12 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
     const url = e.target.value;
     setFormData({ ...formData, image_url: url });
     setPreviewUrl(url);
-    
+
     // Clear selected file when URL is entered
     if (url && selectedFile) {
       setSelectedFile(null);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -129,44 +142,44 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
   // Remove image
   const removeImage = () => {
     setSelectedFile(null);
-    setPreviewUrl('');
-    setFormData({ ...formData, image_url: '' });
+    setPreviewUrl("");
+    setFormData({ ...formData, image_url: "" });
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   // Upload image to server
   const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('image', file);
-    
-    const response = await fetch('/api/upload', {
-      method: 'POST',
+    formData.append("image", file);
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
       body: formData,
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to upload image');
+      throw new Error("Failed to upload image");
     }
-    
+
     const data = await response.json();
     return data.url;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setUploading(true);
-      
+
       let imageUrl = formData.image_url;
-      
+
       // Upload file if selected
       if (selectedFile) {
         imageUrl = await uploadImage(selectedFile);
       }
-      
+
       const submitData = {
         ...formData,
         link: formData.link || undefined,
@@ -180,8 +193,8 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
         onSubmit(submitData as CreateItemData);
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Failed to upload image. Please try again.');
+      console.error("Error uploading image:", error);
+      alert("Failed to upload image. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -214,7 +227,9 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
             <input
               type="text"
               value={formData.item_name}
-              onChange={(e) => setFormData({ ...formData, item_name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, item_name: e.target.value })
+              }
               className="christmas-input"
               placeholder="What would you like for Christmas?"
               maxLength={255}
@@ -230,7 +245,9 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
             <input
               type="url"
               value={formData.link}
-              onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, link: e.target.value })
+              }
               className="christmas-input"
               placeholder="https://example.com/gift"
               maxLength={500}
@@ -245,7 +262,9 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
             <input
               type="text"
               value={formData.price_range}
-              onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, price_range: e.target.value })
+              }
               className="christmas-input"
               placeholder="$10-50, Under $100, etc."
               maxLength={100}
@@ -257,7 +276,7 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
               <Image className="inline w-4 h-4 mr-1" />
               Image (Optional)
             </label>
-            
+
             {/* Image Preview */}
             {previewUrl && (
               <div className="mb-4 relative">
@@ -265,7 +284,7 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
                   src={previewUrl}
                   alt="Preview"
                   className="w-full h-48 object-cover rounded-lg border border-gray-200"
-                  onError={() => setPreviewUrl('')}
+                  onError={() => setPreviewUrl("")}
                 />
                 <button
                   type="button"
@@ -276,7 +295,7 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
                 </button>
               </div>
             )}
-            
+
             {/* File Upload */}
             <div className="space-y-3">
               <div>
@@ -292,38 +311,48 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
                   htmlFor="image-upload"
                   className={`flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
                     isDragOver
-                      ? 'border-christmas-gold bg-christmas-gold/10 scale-105'
-                      : 'border-gray-300 hover:border-christmas-gold hover:bg-gray-50'
+                      ? "border-christmas-gold bg-christmas-gold/10 scale-105"
+                      : "border-gray-300 hover:border-christmas-gold hover:bg-gray-50"
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
-                  <Upload className={`w-8 h-8 mb-2 transition-colors ${
-                    isDragOver ? 'text-christmas-gold' : 'text-gray-400'
-                  }`} />
-                  <span className={`text-sm font-medium transition-colors ${
-                    isDragOver ? 'text-christmas-gold' : 'text-gray-600'
-                  }`}>
+                  <Upload
+                    className={`w-8 h-8 mb-2 transition-colors ${
+                      isDragOver ? "text-christmas-gold" : "text-gray-400"
+                    }`}
+                  />
+                  <span
+                    className={`text-sm font-medium transition-colors ${
+                      isDragOver ? "text-christmas-gold" : "text-gray-600"
+                    }`}
+                  >
                     {selectedFile ? (
                       <span className="text-center">
                         <div className="font-semibold">{selectedFile.name}</div>
-                        <div className="text-xs text-gray-500 mt-1">Click to change or drag new image</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Click to change or drag new image
+                        </div>
                       </span>
                     ) : (
                       <span className="text-center">
-                        <div>{isDragOver ? 'Drop image here' : 'Click to upload or drag & drop'}</div>
-                        <div className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 5MB</div>
+                        <div>
+                          {isDragOver
+                            ? "Drop image here"
+                            : "Click to upload or drag & drop"}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          PNG, JPG, GIF up to 5MB
+                        </div>
                       </span>
                     )}
                   </span>
                 </label>
               </div>
-              
-              <div className="text-center text-sm text-gray-500">
-                or
-              </div>
-              
+
+              <div className="text-center text-sm text-gray-500">or</div>
+
               {/* URL Input */}
               <input
                 type="url"
@@ -334,9 +363,10 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
                 maxLength={500}
               />
             </div>
-            
+
             <p className="text-xs text-gray-500 mt-2">
-              Drag & drop, click to upload (max 5MB), or enter an image URL below
+              Drag & drop, click to upload (max 5MB), or enter an image URL
+              below
             </p>
           </div>
 
@@ -358,8 +388,10 @@ export default function ItemDialog({ isOpen, onClose, onSubmit, item, title }: I
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Uploading...
                 </span>
+              ) : item ? (
+                "🎁 Update Gift"
               ) : (
-                item ? '🎁 Update Gift' : '🎄 Add to Wishlist'
+                "🎄 Add to Wishlist"
               )}
             </button>
           </div>
