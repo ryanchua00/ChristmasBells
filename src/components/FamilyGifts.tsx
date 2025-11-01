@@ -53,14 +53,14 @@ export default function FamilyGifts({
   };
 
   // Initialize expanded users when component mounts
-  useState(() => {
-    const otherUsers = Object.keys(groupedItems).filter(
-      (name) => name.toLowerCase() !== currentUser.toLowerCase()
-    );
-    if (otherUsers.length > 0 && expandedUsers.size === 0) {
-      setExpandedUsers(new Set([otherUsers[0]]));
-    }
-  });
+  // useState(() => {
+  //   const otherUsers = Object.keys(groupedItems).filter(
+  //     (name) => name.toLowerCase() !== currentUser.toLowerCase()
+  //   );
+  //   if (otherUsers.length > 0 && expandedUsers.size === 0) {
+  //     setExpandedUsers(new Set([otherUsers[0]]));
+  //   }
+  // });
 
   const otherUsersItems = Object.entries(groupedItems).filter(
     ([name]) => name.toLowerCase() !== currentUser.toLowerCase()
@@ -239,7 +239,7 @@ export default function FamilyGifts({
             </div>
 
             {/* Hidden Gifts Message */}
-            <div 
+            <div
               className="bg-gradient-to-r from-christmas-red/10 to-christmas-green/10 p-4 rounded-lg border border-christmas-gold/30 cursor-pointer hover:bg-christmas-gold/10 transition-colors"
               onClick={() => {
                 toast("Only when secret santa is assigned!", {
