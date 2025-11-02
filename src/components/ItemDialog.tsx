@@ -33,18 +33,18 @@ export default function ItemDialog({
 
   useEffect(() => {
     if (item) {
-      let itemURL = "";
-      if (
-        process.env.NEXT_PUBLIC_SUPABASE_URL &&
-        !item.image_url?.includes(process.env.NEXT_PUBLIC_SUPABASE_URL)
-      ) {
-        itemURL = item.image_url || "";
-      }
+      // let itemURL = "";
+      // if (
+      //   process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      //   !item.image_url?.includes(process.env.NEXT_PUBLIC_SUPABASE_URL)
+      // ) {
+      //   itemURL =
+      // }
       setFormData({
         item_name: item.item_name,
         link: item.link || "",
         price_range: item.price_range || "",
-        image_url: itemURL,
+        image_url: item.image_url || "",
       });
       setPreviewUrl(item.image_url || "");
     } else {
@@ -356,7 +356,13 @@ export default function ItemDialog({
               {/* URL Input */}
               <input
                 type="url"
-                value={formData.image_url}
+                value={
+                  formData.image_url.includes(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+                  )
+                    ? ""
+                    : formData.image_url
+                }
                 onChange={handleImageUrlChange}
                 className="christmas-input"
                 placeholder="https://example.com/image.jpg"
