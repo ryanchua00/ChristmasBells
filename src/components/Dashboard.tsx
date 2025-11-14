@@ -18,9 +18,9 @@ import toast from "react-hot-toast";
 import { Item, CreateItemData, UpdateItemData } from "../types";
 import { getRandomMessage } from "../lib/utils";
 import ItemDialog from "./ItemDialog";
-// import ReserveDialog from "./ReserveDialog"; // Commented out - reservation functionality disabled for now
+import ReserveDialog from "./ReserveDialog";
 import CommentDialog from "./CommentDialog";
-import FamilyGifts from "./FamilyGifts";
+import AssignedWishlists from "./AssignedWishlists";
 import MyWishlist from "./MyWishlist";
 
 interface DashboardProps {
@@ -36,10 +36,10 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     item?: Item;
     title: string;
   }>({ isOpen: false, title: "" });
-  // const [reserveDialog, setReserveDialog] = useState<{
-  //   isOpen: boolean;
-  //   item: Item | null;
-  // }>({ isOpen: false, item: null }); // Commented out - reservation functionality disabled for now
+  const [reserveDialog, setReserveDialog] = useState<{
+    isOpen: boolean;
+    item: Item | null;
+  }>({ isOpen: false, item: null });
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   const [commentDialog, setCommentDialog] = useState<{
     isOpen: boolean;
@@ -133,28 +133,39 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
 
   const fetchCommentCounts = async () => {
     try {
-      const counts: Record<number, number> = {};
+      if (items.length === 0) return;
 
-      // Fetch comment counts for all items in parallel
-      await Promise.all(
-        items.map(async (item) => {
-          try {
-            const response = await fetch(`/api/items/${item.id}/comments`);
-            const data = await response.json();
-            counts[item.id] = data.comments?.length || 0;
-          } catch (error) {
-            console.error(
-              `Error fetching comments for item ${item.id}:`,
-              error
-            );
-            counts[item.id] = 0;
-          }
-        })
-      );
+      // Get all item IDs
+      const itemIds = items.map(item => item.id);
 
-      setCommentCounts(counts);
+      // Fetch comment counts for all items in a single batch request
+      const response = await fetch('/api/comments/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setCommentCounts(data.commentCounts || {});
+      } else {
+        console.error('Error fetching batch comments:', data.error);
+        // Fallback to empty counts
+        const emptyCounts: Record<number, number> = {};
+        items.forEach(item => {
+          emptyCounts[item.id] = 0;
+        });
+        setCommentCounts(emptyCounts);
+      }
     } catch (error) {
       console.error("Error fetching comment counts:", error);
+      // Fallback to empty counts
+      const emptyCounts: Record<number, number> = {};
+      items.forEach(item => {
+        emptyCounts[item.id] = 0;
+      });
+      setCommentCounts(emptyCounts);
     }
   };
 
@@ -222,64 +233,64 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
     }
   };
 
-  // RESERVATION FUNCTIONALITY - COMMENTED OUT FOR NOW
+  // RESERVATION FUNCTIONALITY - RE-ENABLED
 
-  // const handleReserveItem = async (item: Item) => {
-  //   try {
-  //     const response = await fetch(`/api/items/${item.id}/reserve`, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ gifter_name: currentUser }),
-  //     });
+  const handleReserveItem = async (item: Item) => {
+    try {
+      const response = await fetch(`/api/items/${item.id}/reserve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gifter_name: currentUser }),
+      });
 
-  //     const result = await response.json();
+      const result = await response.json();
 
-  //     if (response.ok && result.item) {
-  //       // Success - update the item in the list
-  //       setItems(items.map((i) => (i.id === item.id ? result.item : i)));
-  //       toast.success("🎅 You're now the secret Santa for this gift!");
-  //       setReserveDialog({ isOpen: false, item: null });
-  //     } else if (result.alreadyReserved) {
-  //       // Item was already reserved - update the item if provided and show specific message
-  //       if (result.item) {
-  //         setItems(items.map((i) => (i.id === item.id ? result.item : i)));
-  //       }
-  //       toast.error(
-  //         result.error || "🎅 Oops! Someone else just reserved this gift!"
-  //       );
-  //       setReserveDialog({ isOpen: false, item: null });
-  //       // Refresh the items to get the latest state
-  //       fetchItems();
-  //     } else {
-  //       toast.error(result.error || getRandomMessage("error"));
-  //     }
-  //   } catch (error) {
-  //     toast.error(getRandomMessage("error"));
-  //   }
-  // };
+      if (response.ok && result.item) {
+        // Success - update the item in the list
+        setItems(items.map((i) => (i.id === item.id ? result.item : i)));
+        toast.success("🎅 You're now the secret Santa for this gift!");
+        setReserveDialog({ isOpen: false, item: null });
+      } else if (result.alreadyReserved) {
+        // Item was already reserved - update the item if provided and show specific message
+        if (result.item) {
+          setItems(items.map((i) => (i.id === item.id ? result.item : i)));
+        }
+        toast.error(
+          result.error || "🎅 Oops! Someone else just reserved this gift!"
+        );
+        setReserveDialog({ isOpen: false, item: null });
+        // Refresh the items to get the latest state
+        fetchItems();
+      } else {
+        toast.error(result.error || getRandomMessage("error"));
+      }
+    } catch (error) {
+      toast.error(getRandomMessage("error"));
+    }
+  };
 
-  // const handleUnreserveItem = async (item: Item) => {
-  //   if (!confirm("🎄 Are you sure you want to unreserve this gift?")) {
-  //     return;
-  //   }
+  const handleUnreserveItem = async (item: Item) => {
+    if (!confirm("🎄 Are you sure you want to unreserve this gift?")) {
+      return;
+    }
 
-  //   try {
-  //     const response = await fetch(`/api/items/${item.id}/reserve`, {
-  //       method: "DELETE",
-  //     });
+    try {
+      const response = await fetch(`/api/items/${item.id}/reserve`, {
+        method: "DELETE",
+      });
 
-  //     const result = await response.json();
+      const result = await response.json();
 
-  //     if (response.ok && result.item) {
-  //       setItems(items.map((i) => (i.id === item.id ? result.item : i)));
-  //       toast.success("🎁 Gift unreserved! It's available for others now.");
-  //     } else {
-  //       toast.error(result.error || getRandomMessage("error"));
-  //     }
-  //   } catch (error) {
-  //     toast.error(getRandomMessage("error"));
-  //   }
-  // };
+      if (response.ok && result.item) {
+        setItems(items.map((i) => (i.id === item.id ? result.item : i)));
+        toast.success("🎁 Gift unreserved! It's available for others now.");
+      } else {
+        toast.error(result.error || getRandomMessage("error"));
+      }
+    } catch (error) {
+      toast.error(getRandomMessage("error"));
+    }
+  };
 
   const groupedItems = items.reduce((acc, item) => {
     const authorName = item.author?.name || "Unknown";
@@ -334,24 +345,23 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
         </div>
 
         {/* Phase Information Card */}
-        <div className="mb-6 p-4 bg-christmas-green rounded-lg border border-christmas-gold/50 shadow-md">
+        <div className="mb-6 p-4 bg-christmas-red rounded-lg border border-christmas-gold/50 shadow-md">
           <div className="flex items-start">
             <div className="flex-shrink-0 w-10 h-10 bg-christmas-gold/30 rounded-full flex items-center justify-center mr-4">
-              <span className="text-xl">🎁</span>
+              <span className="text-xl">🎅</span>
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold text-white mb-2 flex items-center">
-                📝 Gift Adding Phase
+                🎁 Secret Santa Phase
               </h3>
               <p className="text-white text-sm leading-relaxed">
-                We're currently in the <strong>gift collection phase</strong>!
-                Everyone is adding their Christmas wishes to their wishlists.
-                Once everyone has finished adding their gifts, we'll assign your
-                Secret Santas and the fun begins! 🎅✨
+                Ho ho ho! The <strong>Secret Santa assignments</strong> are now active!
+                You can see your assigned people's wishlists and reserve gifts for them.
+                Remember to label each gift with the recipient's ID number! 🎅✨
               </p>
               <div className="mt-3 flex items-center text-xs text-white">
                 <span className="w-2 h-2 bg-christmas-gold rounded-full mr-2 animate-pulse"></span>
-                Phase 1 of 2: Building Wishlists
+                Phase 2 of 2: Secret Santa Shopping
               </div>
             </div>
           </div>
@@ -359,9 +369,8 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
 
         {/* Responsive Layout */}
         <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 min-h-[calc(100vh-180px)] lg:h-[calc(100vh-200px)]">
-          {/* Family Gifts Section */}
-          <FamilyGifts
-            groupedItems={groupedItems}
+          {/* Assigned Wishlists Section */}
+          <AssignedWishlists
             currentUser={currentUser}
             commentCounts={commentCounts}
             onCommentClick={(item) => setCommentDialog({ isOpen: true, item })}
@@ -404,8 +413,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
         title={itemDialog.title}
       />
 
-      {/* RESERVATION DIALOG - COMMENTED OUT FOR NOW */}
-      {/* <ReserveDialog
+      <ReserveDialog
         isOpen={reserveDialog.isOpen}
         onClose={() => setReserveDialog({ isOpen: false, item: null })}
         onConfirm={() =>
@@ -413,7 +421,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
         }
         item={reserveDialog.item}
         currentUser={currentUser}
-      /> */}
+      />
 
       <CommentDialog
         isOpen={commentDialog.isOpen}
@@ -581,7 +589,8 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                     </div>
                   )}
 
-                  {itemDetailDialog.item.gifter_id && (
+                  {itemDetailDialog.item.gifter_id && 
+                   itemDetailDialog.item.author?.name?.toLowerCase() !== currentUser.toLowerCase() && (
                     <div className="bg-gradient-to-r from-christmas-green/20 to-green-200/30 p-4 rounded-lg border-l-4 border-christmas-green">
                       <div className="flex items-center">
                         <span className="text-2xl mr-2">🎅</span>
@@ -590,10 +599,7 @@ export default function Dashboard({ currentUser, onLogout }: DashboardProps) {
                             This gift has been reserved!
                           </p>
                           <p className="text-sm text-christmas-green/80 mt-1">
-                            {itemDetailDialog.item.author?.name?.toLowerCase() ===
-                            currentUser.toLowerCase()
-                              ? "Someone will surprise you with this gift on Christmas Day!"
-                              : "This gift is no longer available for reservation."}
+                            This gift is no longer available for reservation.
                           </p>
                         </div>
                       </div>

@@ -195,19 +195,6 @@ export default function MyWishlist({
                   </a>
                 )}
 
-                {item.gifter_id && (
-                  <div className="bg-gradient-to-r from-christmas-green/20 to-green-200/30 p-3 rounded-lg border border-christmas-green/30">
-                    <p className="text-sm font-bold text-christmas-green flex items-center">
-                      🎅{" "}
-                      <span className="ml-2">
-                        Someone has reserved this gift for you! 🎁
-                      </span>
-                    </p>
-                    <p className="text-xs text-christmas-green/80 mt-1">
-                      It's a surprise! You'll find out who on Christmas Day.
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
           ))
@@ -317,19 +304,6 @@ export default function MyWishlist({
                         </a>
                       )}
 
-                      {item.gifter_id && (
-                        <div className="bg-gradient-to-r from-christmas-green/20 to-green-200/30 p-2 rounded-lg border border-christmas-green/30">
-                          <p className="text-xs font-bold text-christmas-green flex items-center">
-                            🎅{" "}
-                            <span className="ml-1 truncate">
-                              Reserved for you! 🎁
-                            </span>
-                          </p>
-                          <p className="text-[10px] text-christmas-green/80 mt-1">
-                            It's a surprise!
-                          </p>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>

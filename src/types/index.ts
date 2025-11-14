@@ -2,6 +2,7 @@ export interface User {
   id: number;
   name: string;
   created_at: string;
+  assigned_users?: number[];
 }
 
 export interface Item {

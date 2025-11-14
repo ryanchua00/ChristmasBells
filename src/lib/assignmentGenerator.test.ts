@@ -82,13 +82,13 @@ export function testValidation(): void {
   // Test with valid assignments
   const validAssignments: Assignment[] = [
     { giverId: 1, receiverId: 2 },
-    { giverId: 1, receiverId: 3 },
     { giverId: 1, receiverId: 4 },
-    { giverId: 1, receiverId: 5 },
+    { giverId: 1, receiverId: 19 },
+    { giverId: 1, receiverId: 20 },
     { giverId: 2, receiverId: 1 },
-    { giverId: 2, receiverId: 3 },
     { giverId: 2, receiverId: 4 },
-    { giverId: 2, receiverId: 5 },
+    { giverId: 2, receiverId: 19 },
+    { giverId: 2, receiverId: 20 },
     // ... (would need 32 total for complete test)
   ];
   
@@ -96,8 +96,8 @@ export function testValidation(): void {
   const invalidAssignments: Assignment[] = [
     { giverId: 1, receiverId: 1 }, // Self-assignment - should be invalid
     { giverId: 1, receiverId: 2 },
-    { giverId: 1, receiverId: 3 },
     { giverId: 1, receiverId: 4 },
+    { giverId: 1, receiverId: 19 },
   ];
   
   console.log('Testing invalid assignments (with self-assignment):');
@@ -139,11 +139,12 @@ export function analyzeAssignmentDistribution(): void {
   
   // Create a giving matrix to visualize who gives to whom
   console.log('Giving Matrix (rows give to columns):');
-  console.log('   1 2 3 4 5 6 7 8');
+  console.log('   1  2  4 19 20 21 22 23');
   
-  for (let giver = 1; giver <= 8; giver++) {
-    let row = `${giver}: `;
-    for (let receiver = 1; receiver <= 8; receiver++) {
+  const users = [1, 2, 4, 19, 20, 21, 22, 23];
+  for (const giver of users) {
+    let row = `${giver.toString().padStart(2)}: `;
+    for (const receiver of users) {
       const gives = assignments.some(a => a.giverId === giver && a.receiverId === receiver);
       row += gives ? 'X ' : '. ';
     }
@@ -154,8 +155,7 @@ export function analyzeAssignmentDistribution(): void {
   // Check for balanced distribution
   const givingCounts = new Map<number, number>();
   const receivingCounts = new Map<number, number>();
-  
-  for (let user = 1; user <= 8; user++) {
+  for (const user of users) {
     givingCounts.set(user, userAssignments.find(u => u.userId === user)?.givesTo.length || 0);
     receivingCounts.set(user, userAssignments.find(u => u.userId === user)?.receivesFrom.length || 0);
   }
@@ -163,8 +163,8 @@ export function analyzeAssignmentDistribution(): void {
   console.log('Distribution Summary:');
   console.log('User | Gives | Receives');
   console.log('-----|-------|--------');
-  for (let user = 1; user <= 8; user++) {
-    console.log(`  ${user}  |   ${givingCounts.get(user)}   |    ${receivingCounts.get(user)}`);
+  for (const user of users) {
+    console.log(`${user.toString().padStart(3)} |   ${givingCounts.get(user)}   |    ${receivingCounts.get(user)}`);
   }
   console.log('');
 }
